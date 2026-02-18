@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +51,11 @@ export default function TxSummaryDialog({
             <p>
               Amount
               <span className="text-right font-medium">{amount}</span>
+            </p>
+
+            <p>
+              Network
+              <span className="text-right font-medium">{network}</span>
             </p>
 
             <p>

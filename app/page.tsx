@@ -5,7 +5,9 @@ import {
   SignInButton,
   SignUpButton,
 } from "@clerk/nextjs";
+import Link from "next/link";
 import { CryptoWalletSection } from "@/components/crypto-wallet-section";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -44,6 +46,10 @@ export default function Home() {
           </div>
 
           <CryptoWalletSection />
+
+          <Button variant="secondary" asChild>
+            <Link href="/dashboard">ZeroPass dashboard</Link>
+          </Button>
         </div>
       </SignedIn>
     </main>

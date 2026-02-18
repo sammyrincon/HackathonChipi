@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chipi Pay | Secure Private Escrow",
-  description: "Crypto payments app",
+  title: "ZeroPass | Verify once, access anywhere",
+  description: "ZeroPass — verify once, access anywhere. KYC and credentials linked to your Chipi wallet.",
 };
 
 export default function RootLayout({children}: {
@@ -28,7 +28,7 @@ export default function RootLayout({children}: {
   return (
     <ClerkProvider afterSignOutUrl="/">
       <ChipiProvider>
-        <html lang="en" suppressHydrationWarning>
+        <html lang="en" className="dark" suppressHydrationWarning>
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
             {children}
             <Toaster />

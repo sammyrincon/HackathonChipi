@@ -1,4 +1,5 @@
 import { getChipiServer } from "@chipi-stack/nextjs/server";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -43,7 +44,7 @@ export default async function SkuDetailPage({
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              The product you're looking for doesn't exist or has been removed.
+              The product you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
           </CardContent>
         </Card>
@@ -56,7 +57,7 @@ export default async function SkuDetailPage({
       <Card>
         <CardHeader>
           <div className="flex w-full items-center justify-center gap-2">
-            <img
+            <Image
               src="https://chipi-carriers-public.s3.us-west-2.amazonaws.com/1/logotipo.png"
               alt={sku.name}
               width={200}

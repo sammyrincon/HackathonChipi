@@ -2,6 +2,8 @@ import { type Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ChipiProvider } from "@chipi-stack/nextjs";
+import { Toaster } from "sonner";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import "./globals.css";
 
@@ -24,11 +26,13 @@ export default function RootLayout({children}: {
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider afterSignOutUrl="/">
       <ChipiProvider>
         <html lang="en" suppressHydrationWarning>
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
             {children}
+            <Toaster />
+            <ReactQueryDevtools initialIsOpen={false} />
           </body>
         </html>
       </ChipiProvider>

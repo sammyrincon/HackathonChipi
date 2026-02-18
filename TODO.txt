@@ -1,0 +1,7 @@
+app/
+  page.tsx          → landing/login (ya existe)
+  dashboard/        → dashboard del usuario (ZeroPass personal)
+  verify/           → flujo de KYC simulado
+  business/         → dashboard del negocio para verificar usuarios
+  api/
+    kyc/            → endpoint que genera la credencial

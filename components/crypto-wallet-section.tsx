@@ -7,19 +7,19 @@ import { WalletSummary } from "@/components/wallet-summary";
 import SendUsdcDialog from "@/components/send-usdc-dialog";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { WalletData } from "@chipi-stack/types";
 
 export function CryptoWalletSection() {
   const { getToken } = useAuth();
   const { data: walletResponse, isLoading } = useGetWallet({
     getBearerToken: getToken,
   });
-  const wallet = walletResponse?.wallet;
 
   if (isLoading) {
     return <p className="text-muted-foreground">Cargando wallet…</p>;
   }
 
-  if (!wallet) {
+  if (!walletResponse) {
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">
@@ -30,8 +30,14 @@ export function CryptoWalletSection() {
     );
   }
 
-  const normalizedPublicKey = wallet.normalizedPublicKey ?? wallet.walletPublicKey ?? "";
-  const walletPublicKey = wallet.walletPublicKey ?? "";
+  const normalizedPublicKey = walletResponse.normalizedPublicKey ?? "";
+  const walletPublicKey = walletResponse.publicKey ?? "";
+  const walletForTransfer: WalletData = {
+    publicKey: walletResponse.publicKey,
+    encryptedPrivateKey: walletResponse.encryptedPrivateKey,
+    normalizedPublicKey: walletResponse.normalizedPublicKey,
+    walletType: walletResponse.walletType,
+  };
 
   return (
     <div className="space-y-6 w-full">
@@ -40,7 +46,7 @@ export function CryptoWalletSection() {
         walletPublicKey={walletPublicKey}
       />
       <div className="flex gap-3 justify-center flex-wrap">
-        <SendUsdcDialog wallet={wallet} />
+        <SendUsdcDialog wallet={walletForTransfer} />
         <Button variant="outline" asChild>
           <Link href="/skus">Ver productos (SKUs)</Link>
         </Button>

@@ -4,12 +4,14 @@ import { prisma } from "@/lib/db";
 
 export type KycSubmitBody = {
   walletAddress?: string;
+  transactionHash?: string;
 };
 
 export type KycCredentialResponse = {
   credentialId: string;
   status: "verified";
   walletAddress: string;
+  transactionHash: string | null;
   issuedAt: string;
   expiresAt: string;
   message: string;
@@ -32,6 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
     const walletAddress = body.walletAddress ?? "0x0";
+    const transactionHash = body.transactionHash ?? null;
 
     const now = new Date();
     const expires = new Date(now);
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
         walletAddress,
         status: "verified",
         credentialId,
+        transactionHash,
         issuedAt: now,
         expiresAt: expires,
       },
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
         walletAddress,
         status: "verified",
         credentialId,
+        transactionHash,
         issuedAt: now,
         expiresAt: expires,
       },
@@ -62,6 +67,7 @@ export async function POST(request: NextRequest) {
       credentialId: credential.credentialId,
       status: "verified",
       walletAddress: credential.walletAddress,
+      transactionHash: credential.transactionHash,
       issuedAt: credential.issuedAt.toISOString(),
       expiresAt: credential.expiresAt.toISOString(),
       message: "ZeroPass credential issued. Verify once, access anywhere.",

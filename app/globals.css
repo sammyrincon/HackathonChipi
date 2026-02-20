@@ -2,9 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ZeroPass dark theme - verify once, access anywhere */
 @layer base {
-  body {
-    @apply antialiased min-h-screen;
+  :root {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --primary: 263 70% 58%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 5% 12%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 263 70% 58%;
+    --destructive: 0 62% 50%;
   }
 }

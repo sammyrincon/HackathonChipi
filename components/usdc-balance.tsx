@@ -15,7 +15,7 @@ export function UsdcBalance({ walletPublicKey }: { walletPublicKey: string }) {
   });
 
   return (
-    <p className="text-8xl">
+    <p className="text-4xl font-semibold tabular-nums text-zinc-100 md:text-5xl">
       {!isNaN(Number(usdcBalance?.balance))
         ? `$${Number(usdcBalance?.balance).toFixed(2)}`
         : "$0.00"}

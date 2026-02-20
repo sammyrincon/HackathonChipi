@@ -5,3 +5,7 @@ app/
   business/         → dashboard del negocio para verificar usuarios
   api/
     kyc/            → endpoint que genera la credencial
+
+
+Contrasena Supabase
+WD/m7@v9&534V3N

@@ -47,8 +47,6 @@ export function KycForm() {
       }
       const data = await res.json();
       setCredential(data);
-      localStorage.setItem("zeropass_kyc_status", "verified");
-      localStorage.setItem("zeropass_credential_id", data.credentialId);
       toast.success("ZeroPass credential issued!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -59,30 +57,30 @@ export function KycForm() {
 
   if (credential) {
     return (
-      <Card className="border-emerald-800 bg-emerald-950/20">
+      <Card className="border-emerald-800/60 bg-emerald-950/30 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-emerald-400">
             <ShieldCheck className="h-5 w-5" />
             Credential issued
           </CardTitle>
-          <CardDescription>{credential.message}</CardDescription>
+          <CardDescription className="text-zinc-400">{credential.message}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-zinc-300">
             <span className="text-zinc-500">Credential ID:</span>{" "}
-            <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs">
+            <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
               {credential.credentialId}
             </code>
           </p>
           {credential.walletAddress && (
             <p className="text-sm text-zinc-300">
               <span className="text-zinc-500">Linked wallet:</span>{" "}
-              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
                 {credential.walletAddress.slice(0, 10)}...{credential.walletAddress.slice(-8)}
               </code>
             </p>
           )}
-          <Button asChild className="mt-4">
+          <Button asChild className="mt-4 bg-violet-600 hover:bg-violet-500 text-white border-0">
             <Link href="/dashboard">Go to dashboard</Link>
           </Button>
         </CardContent>
@@ -91,32 +89,32 @@ export function KycForm() {
   }
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900/50">
+    <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
       <CardHeader>
-        <CardTitle>Upload documents</CardTitle>
-        <CardDescription>
-          Simulated KYC. Any files are accepted; no real verification is performed.
+        <CardTitle className="text-zinc-100">Upload documents</CardTitle>
+        <CardDescription className="text-zinc-400">
+          Upload a government-issued ID and a selfie to verify your identity and receive your ZeroPass credential.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="id-photo">Photo of ID</Label>
+            <Label htmlFor="id-photo" className="text-zinc-300">Photo of ID</Label>
             <Input
               id="id-photo"
               type="file"
               accept="image/*"
-              className="border-zinc-700 bg-zinc-900"
+              className="border-zinc-700 bg-zinc-900 text-zinc-100 file:text-zinc-300"
               onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="selfie">Selfie</Label>
+            <Label htmlFor="selfie" className="text-zinc-300">Selfie</Label>
             <Input
               id="selfie"
               type="file"
               accept="image/*"
-              className="border-zinc-700 bg-zinc-900"
+              className="border-zinc-700 bg-zinc-900 text-zinc-100 file:text-zinc-300"
               onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
             />
           </div>
@@ -129,7 +127,7 @@ export function KycForm() {
           <Button
             type="submit"
             disabled={submitting || !idFile || !selfieFile}
-            className="w-full"
+            className="w-full bg-violet-600 hover:bg-violet-500 text-white border-0"
           >
             {submitting ? (
               <>

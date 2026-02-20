@@ -37,7 +37,7 @@ export default async function KycPage() {
           KYC verification
         </h1>
         <p className="mb-8 text-zinc-400">
-          Simulated flow. Upload a photo of your ID and a selfie to receive your
+          Upload a photo of your government-issued ID and a selfie to receive your
           ZeroPass credential linked to your Chipi wallet.
         </p>
 

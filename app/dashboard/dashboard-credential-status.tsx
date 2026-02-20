@@ -1,29 +1,32 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, ShieldX } from "lucide-react";
+import { ShieldCheck, ShieldX, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { KycStatusResponse } from "@/app/api/kyc/status/route";
 
 export function DashboardCredentialStatus({
   walletAddress,
 }: {
   walletAddress: string;
 }) {
-  const [status, setStatus] = useState<"verified" | "pending" | "not_verified">("not_verified");
+  const [data, setData] = useState<KycStatusResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("zeropass_kyc_status") as "verified" | "pending" | null;
-    const value = stored ?? "not_verified";
-    const id = requestAnimationFrame(() => setStatus(value));
-    return () => cancelAnimationFrame(id);
+    fetch("/api/kyc/status")
+      .then((r) => r.json())
+      .then((d: KycStatusResponse) => setData(d))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const isVerified = status === "verified";
-  const isPending = status === "pending";
+  const isVerified = data?.status === "verified";
+  const isExpired = data?.status === "expired";
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900/50">
-      <CardHeader className="flex flex-row items-center gap-2 space-y-0">
+    <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
+      <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
         {isVerified ? (
           <ShieldCheck className="h-5 w-5 text-emerald-400" />
         ) : (
@@ -32,13 +35,39 @@ export function DashboardCredentialStatus({
         <CardTitle className="text-zinc-100">ZeroPass credential</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {isVerified && (
-          <p className="text-sm text-emerald-400">Verified — linked to your wallet</p>
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-zinc-400">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Checking credential...
+          </div>
         )}
-        {isPending && (
-          <p className="text-sm text-amber-400">Verification in progress</p>
+        {!loading && isVerified && (
+          <>
+            <p className="text-sm text-emerald-400">Verified — linked to your wallet</p>
+            {data?.credentialId && (
+              <p className="text-xs text-zinc-500">
+                ID:{" "}
+                <code className="rounded bg-zinc-800 px-1 py-0.5 font-mono text-zinc-400">
+                  {data.credentialId}
+                </code>
+              </p>
+            )}
+            {data?.expiresAt && (
+              <p className="text-xs text-zinc-500">
+                Expires:{" "}
+                {new Date(data.expiresAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </p>
+            )}
+          </>
         )}
-        {!isVerified && !isPending && (
+        {!loading && isExpired && (
+          <p className="text-sm text-amber-400">Credential expired. Please complete KYC again.</p>
+        )}
+        {!loading && !isVerified && !isExpired && (
           <p className="text-sm text-zinc-400">
             No credential yet. Complete KYC to get your ZeroPass credential.
           </p>

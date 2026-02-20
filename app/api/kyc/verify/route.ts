@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 /**
- * Mock verification: for demo, any wallet address is considered "verified"
- * if the request includes a valid-looking address. In production this would
- * check a credential registry.
+ * Verifies a wallet address by looking up a stored Credential in the database.
+ * Returns verified: true only if a non-expired credential exists for that address.
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: { walletAddress?: string; address?: string } = {};
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { verified: false, error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
     const walletAddress = (body.walletAddress ?? body.address ?? "").trim();
 
     if (!walletAddress) {
@@ -17,20 +25,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const looksLikeAddress =
-      walletAddress.startsWith("0x") && walletAddress.length >= 40;
+    const now = new Date();
+    const credential = await prisma.credential.findFirst({
+      where: {
+        walletAddress,
+        status: "verified",
+        expiresAt: { gt: now },
+      },
+    });
+
+    const verified = !!credential;
 
     return NextResponse.json({
-      verified: looksLikeAddress,
+      verified,
       walletAddress,
-      credentialId: looksLikeAddress
-        ? `zp_linked_${walletAddress.slice(2, 14)}`
-        : null,
-      message: looksLikeAddress
+      credentialId: credential?.credentialId ?? null,
+      message: verified
         ? "ZeroPass credential verified. Verify once, access anywhere."
-        : "Invalid wallet address.",
+        : "No valid credential found for this wallet address.",
     });
-  } catch {
+  } catch (err) {
+    console.error("[POST /api/kyc/verify]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

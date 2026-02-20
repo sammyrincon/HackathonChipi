@@ -16,13 +16,13 @@ export function CryptoWalletSection() {
   });
 
   if (isLoading) {
-    return <p className="text-muted-foreground">Cargando wallet…</p>;
+    return <p className="text-zinc-400">Cargando wallet…</p>;
   }
 
   if (!walletResponse) {
     return (
       <div className="space-y-4">
-        <p className="text-muted-foreground">
+        <p className="text-zinc-400">
           Crea tu wallet Chipi para usar USDC y pagos con crypto.
         </p>
         <CreateWalletDialog />
@@ -47,7 +47,7 @@ export function CryptoWalletSection() {
       />
       <div className="flex gap-3 justify-center flex-wrap">
         <SendUsdcDialog wallet={walletForTransfer} />
-        <Button variant="outline" asChild>
+        <Button variant="outline" className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100" asChild>
           <Link href="/skus">Ver productos (SKUs)</Link>
         </Button>
       </div>

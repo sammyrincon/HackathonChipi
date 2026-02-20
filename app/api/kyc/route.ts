@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/db";
 
 export type KycSubmitBody = {
   walletAddress?: string;
 };
 
-export type KycMockCredential = {
+export type KycCredentialResponse = {
   credentialId: string;
   status: "verified";
   walletAddress: string;
@@ -31,17 +32,39 @@ export async function POST(request: NextRequest) {
     const expires = new Date(now);
     expires.setFullYear(expires.getFullYear() + 1);
 
-    const credential: KycMockCredential = {
-      credentialId: `zp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    const credentialId = `zp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    const credential = await prisma.credential.upsert({
+      where: { clerkUserId: userId },
+      create: {
+        clerkUserId: userId,
+        walletAddress,
+        status: "verified",
+        credentialId,
+        issuedAt: now,
+        expiresAt: expires,
+      },
+      update: {
+        walletAddress,
+        status: "verified",
+        credentialId,
+        issuedAt: now,
+        expiresAt: expires,
+      },
+    });
+
+    const response: KycCredentialResponse = {
+      credentialId: credential.credentialId,
       status: "verified",
-      walletAddress,
-      issuedAt: now.toISOString(),
-      expiresAt: expires.toISOString(),
+      walletAddress: credential.walletAddress,
+      issuedAt: credential.issuedAt.toISOString(),
+      expiresAt: credential.expiresAt.toISOString(),
       message: "ZeroPass credential issued. Verify once, access anywhere.",
     };
 
-    return NextResponse.json(credential);
-  } catch {
+    return NextResponse.json(response);
+  } catch (err) {
+    console.error("[POST /api/kyc]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

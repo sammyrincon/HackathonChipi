@@ -83,14 +83,14 @@ export function BusinessVerificationForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletAddress: address }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({})) as { verified?: boolean; walletAddress?: string; credentialId?: string | null; message?: string; error?: string };
       if (!res.ok) {
         toast.error(data.error ?? "Verification failed");
         return;
       }
       setResult({
-        verified: data.verified,
-        walletAddress: data.walletAddress,
+        verified: data.verified ?? false,
+        walletAddress: data.walletAddress ?? address,
         credentialId: data.credentialId ?? null,
         message: data.message ?? "",
       });

@@ -11,12 +11,16 @@ import type { WalletData } from "@chipi-stack/types";
 
 export function CryptoWalletSection() {
   const { getToken } = useAuth();
-  const { data: walletResponse, isLoading } = useGetWallet({
+  const { data: walletResponse, isLoading, isError } = useGetWallet({
     getBearerToken: getToken,
   });
 
   if (isLoading) {
     return <p className="text-zinc-400">Cargando wallet…</p>;
+  }
+
+  if (isError) {
+    return <p className="text-sm text-zinc-500">Could not load wallet. Please refresh.</p>;
   }
 
   if (!walletResponse) {

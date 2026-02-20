@@ -25,7 +25,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as KycSubmitBody;
+    let body: KycSubmitBody = {};
+    try {
+      body = (await request.json()) as KycSubmitBody;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
     const walletAddress = body.walletAddress ?? "0x0";
 
     const now = new Date();

@@ -30,8 +30,11 @@ export function DashboardRecentActivity() {
 
   useEffect(() => {
     fetch("/api/kyc/status")
-      .then((r) => r.json())
-      .then((data: KycStatusResponse) => {
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<KycStatusResponse>;
+      })
+      .then((data) => {
         const activity: ActivityItem[] = [];
 
         if (data.issuedAt) {

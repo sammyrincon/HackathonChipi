@@ -20,8 +20,12 @@ export function WalletSummary({
 
   const copyFullWallet = async () => {
     if (!normalizedPublicKey) return;
-    await navigator.clipboard.writeText(normalizedPublicKey);
-    toast.success("Wallet copied to clipboard");
+    try {
+      await navigator.clipboard.writeText(normalizedPublicKey);
+      toast.success("Wallet copied to clipboard");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
   };
   return (
     <Card className="border-zinc-800 bg-zinc-900/50 text-zinc-100">

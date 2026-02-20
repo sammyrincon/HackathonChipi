@@ -12,12 +12,16 @@ export function DashboardCredentialStatus({
 }) {
   const [data, setData] = useState<KycStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetch("/api/kyc/status")
-      .then((r) => r.json())
-      .then((d: KycStatusResponse) => setData(d))
-      .catch(() => setData(null))
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<KycStatusResponse>;
+      })
+      .then((d) => setData(d))
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -41,7 +45,10 @@ export function DashboardCredentialStatus({
             Checking credential...
           </div>
         )}
-        {!loading && isVerified && (
+        {!loading && error && (
+          <p className="text-sm text-zinc-500">Could not load credential status.</p>
+        )}
+        {!loading && !error && isVerified && (
           <>
             <p className="text-sm text-emerald-400">Verified — linked to your wallet</p>
             {data?.credentialId && (
@@ -64,10 +71,10 @@ export function DashboardCredentialStatus({
             )}
           </>
         )}
-        {!loading && isExpired && (
+        {!loading && !error && isExpired && (
           <p className="text-sm text-amber-400">Credential expired. Please complete KYC again.</p>
         )}
-        {!loading && !isVerified && !isExpired && (
+        {!loading && !error && !isVerified && !isExpired && (
           <p className="text-sm text-zinc-400">
             No credential yet. Complete KYC to get your ZeroPass credential.
           </p>

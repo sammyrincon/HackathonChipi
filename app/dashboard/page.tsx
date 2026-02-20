@@ -21,9 +21,12 @@ export default async function DashboardPage() {
   if (!userId) redirect("/sign-in");
 
   const chipiServer = getChipiServer();
-  const walletResponse = await chipiServer.getWallet({
-    externalUserId: userId,
-  });
+  let walletResponse = null;
+  try {
+    walletResponse = await chipiServer.getWallet({ externalUserId: userId });
+  } catch {
+    // Wallet not found or Chipi API unavailable — continue with no wallet
+  }
 
   const normalizedPublicKey = walletResponse?.normalizedPublicKey ?? "";
   const walletPublicKey = walletResponse?.publicKey ?? "";

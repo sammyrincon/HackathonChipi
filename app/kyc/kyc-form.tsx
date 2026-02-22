@@ -39,19 +39,19 @@ function StageIndicator({ stage }: { stage: Stage }) {
           <div key={step.key} className="flex items-center gap-2">
             <div className="flex flex-col items-center gap-1">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-semibold transition-all ${
+                className={`flex h-8 w-8 items-center justify-center rounded-none border-2 border-[#111111] text-xs font-semibold transition-all ${
                   done
-                    ? "border-emerald-500 bg-emerald-500/20 text-emerald-400"
+                    ? "bg-[#CC0000]/20 text-[#CC0000]"
                     : active
-                    ? "border-violet-500 bg-violet-500/20 text-violet-400"
-                    : "border-zinc-700 bg-zinc-800 text-zinc-500"
+                    ? "bg-[#111111] text-[#F9F9F7]"
+                    : "bg-[#F9F9F7] text-[#111111]/50"
                 }`}
               >
                 {done ? <CheckCircle2 className="h-4 w-4" /> : <step.icon className="h-4 w-4" />}
               </div>
               <span
-                className={`text-[10px] ${
-                  done ? "text-emerald-400" : active ? "text-violet-400" : "text-zinc-600"
+                className={`text-[10px] uppercase tracking-widest ${
+                  done ? "text-[#CC0000]" : active ? "text-[#111111]" : "text-[#111111]/60"
                 }`}
               >
                 {step.label}
@@ -60,7 +60,7 @@ function StageIndicator({ stage }: { stage: Stage }) {
             {i < steps.length - 1 && (
               <div
                 className={`mb-4 h-0.5 w-8 transition-colors ${
-                  done ? "bg-emerald-500/60" : "bg-zinc-700"
+                  done ? "bg-[#CC0000]" : "bg-[#111111]/30"
                 }`}
               />
             )}
@@ -181,39 +181,37 @@ export function KycForm() {
 
       {/* Stage 1: Upload documents */}
       {stage === "upload" && (
-        <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
+        <Card className="border-[#111111] bg-[#F9F9F7]">
           <CardHeader>
-            <CardTitle className="text-zinc-100">Upload documents</CardTitle>
-            <CardDescription className="text-zinc-400">
+            <CardTitle className="font-headline text-[#111111]">Upload documents</CardTitle>
+            <CardDescription className="font-body text-[#111111]/70">
               Upload a government-issued ID and a selfie to verify your identity and receive your ZeroPass credential.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmitDocs} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="id-photo" className="text-zinc-300">Photo of ID</Label>
+                <Label htmlFor="id-photo">Photo of ID</Label>
                 <Input
                   id="id-photo"
                   type="file"
                   accept="image/*"
-                  className="border-zinc-700 bg-zinc-900 text-zinc-100 file:text-zinc-300"
                   onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="selfie" className="text-zinc-300">Selfie</Label>
+                <Label htmlFor="selfie">Selfie</Label>
                 <Input
                   id="selfie"
                   type="file"
                   accept="image/*"
-                  className="border-zinc-700 bg-zinc-900 text-zinc-100 file:text-zinc-300"
                   onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
                 />
               </div>
               {walletAddress && (
-                <p className="text-xs text-zinc-500">
+                <p className="font-body text-xs text-[#111111]/70">
                   Credential will be linked to:{" "}
-                  <code className="font-mono">
+                  <code className="font-mono-data">
                     {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
                   </code>
                 </p>
@@ -221,7 +219,7 @@ export function KycForm() {
               <Button
                 type="submit"
                 disabled={!idFile || !selfieFile}
-                className="w-full bg-violet-600 hover:bg-violet-500 text-white border-0"
+                className="w-full"
               >
                 Continue to payment
               </Button>
@@ -232,37 +230,37 @@ export function KycForm() {
 
       {/* Stage 2: Pay 1 USDC */}
       {stage === "payment" && (
-        <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
+        <Card className="border-[#111111] bg-[#F9F9F7]">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-zinc-100">
-              <CreditCard className="h-5 w-5 text-violet-400" />
+            <CardTitle className="font-headline flex items-center gap-2 text-[#111111]">
+              <CreditCard className="h-5 w-5 text-[#CC0000]" />
               Pay to receive your credential
             </CardTitle>
-            <CardDescription className="text-zinc-400">
+            <CardDescription className="font-body text-[#111111]/70">
               A one-time payment of 1 USDC is required to issue your ZeroPass credential.
               The transaction is gasless — no ETH or STRK needed.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-zinc-700 bg-zinc-800/60 p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">ZeroPass credential</span>
-                <span className="text-zinc-100 font-medium">1.00 USDC</span>
+            <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 space-y-2">
+              <div className="flex justify-between font-body text-sm">
+                <span className="text-[#111111]/70">ZeroPass credential</span>
+                <span className="font-medium text-[#111111]">1.00 USDC</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Gas fee</span>
-                <span className="text-emerald-400 font-medium">Free (Chipi paymaster)</span>
+              <div className="flex justify-between font-body text-sm">
+                <span className="text-[#111111]/70">Gas fee</span>
+                <span className="font-medium text-[#CC0000]">Free (Chipi paymaster)</span>
               </div>
-              <div className="border-t border-zinc-700 pt-2 flex justify-between text-sm font-semibold">
-                <span className="text-zinc-300">Total</span>
-                <span className="text-zinc-100">1.00 USDC</span>
+              <div className="border-t-4 border-[#111111] pt-2 flex justify-between font-body text-sm font-semibold">
+                <span className="text-[#111111]">Total</span>
+                <span className="text-[#111111]">1.00 USDC</span>
               </div>
             </div>
 
             {walletAddress && (
-              <p className="text-xs text-zinc-500">
+              <p className="font-body text-xs text-[#111111]/70">
                 Paying from:{" "}
-                <code className="font-mono">
+                <code className="font-mono-data">
                   {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
                 </code>
               </p>
@@ -271,7 +269,7 @@ export function KycForm() {
             <Button
               onClick={() => setPinOpen(true)}
               disabled={loadingPayment}
-              className="w-full bg-violet-600 hover:bg-violet-500 text-white border-0"
+              className="w-full"
             >
               {loadingPayment ? (
                 <>
@@ -286,7 +284,7 @@ export function KycForm() {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full text-zinc-500 hover:text-zinc-300"
+              className="w-full border-transparent text-[#111111]/70 hover:bg-[#111111]/10 hover:text-[#111111]"
               onClick={() => setStage("upload")}
               disabled={loadingPayment}
             >
@@ -298,42 +296,42 @@ export function KycForm() {
 
       {/* Stage 3: Credential issued */}
       {stage === "issued" && credential && (
-        <Card className="border-emerald-800/60 bg-emerald-950/30 shadow-lg">
+        <Card className="border-[#111111] bg-[#F9F9F7]">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-emerald-400">
+            <CardTitle className="font-headline flex items-center gap-2 text-[#CC0000]">
               <ShieldCheck className="h-5 w-5" />
               Credential issued
             </CardTitle>
-            <CardDescription className="text-zinc-400">
+            <CardDescription className="font-body text-[#111111]/70">
               {credential.message}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 space-y-2 text-sm">
-              <p className="text-zinc-300">
-                <span className="text-zinc-500">Credential ID: </span>
-                <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
+            <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-3 space-y-2 font-body text-sm">
+              <p className="text-[#111111]">
+                <span className="text-[#111111]/70">Credential ID: </span>
+                <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
                   {credential.credentialId}
                 </code>
               </p>
               {credential.walletAddress && (
-                <p className="text-zinc-300">
-                  <span className="text-zinc-500">Linked wallet: </span>
-                  <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
+                <p className="text-[#111111]">
+                  <span className="text-[#111111]/70">Linked wallet: </span>
+                  <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
                     {credential.walletAddress.slice(0, 10)}...{credential.walletAddress.slice(-8)}
                   </code>
                 </p>
               )}
               {credential.transactionHash && (
-                <p className="text-zinc-300">
-                  <span className="text-zinc-500">Payment tx: </span>
-                  <code className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-300">
+                <p className="text-[#111111]">
+                  <span className="text-[#111111]/70">Payment tx: </span>
+                  <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
                     {credential.transactionHash.slice(0, 12)}...{credential.transactionHash.slice(-8)}
                   </code>
                 </p>
               )}
             </div>
-            <Button asChild className="mt-2 w-full bg-violet-600 hover:bg-violet-500 text-white border-0">
+            <Button asChild className="mt-2 w-full">
               <Link href="/dashboard">Go to dashboard</Link>
             </Button>
           </CardContent>

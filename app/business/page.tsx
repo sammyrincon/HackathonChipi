@@ -16,20 +16,20 @@ export default async function BusinessPage() {
   if (!userId) redirect("/sign-in");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md px-4 py-3">
+    <div className="min-h-screen newsprint-bg text-[#111111]">
+      <header className="sticky top-0 z-10 border-b-4 border-[#111111] bg-newsprint px-4 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" asChild>
+            <Button variant="ghost" size="icon" className="border-transparent text-[#111111]/80 hover:bg-[#111111]/10 hover:text-[#111111]" asChild>
               <Link href="/dashboard" aria-label="Back to dashboard">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-violet-400" />
-              <span className="text-lg font-semibold tracking-tight">ZeroPass</span>
+              <ShieldCheck className="h-6 w-6 text-[#CC0000]" />
+              <span className="font-headline text-lg font-semibold tracking-tight">ZeroPass</span>
             </div>
-            <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-xs font-medium text-violet-300">
+            <span className="border border-[#111111] bg-[#F9F9F7] px-2.5 py-0.5 text-xs font-medium uppercase tracking-widest text-[#111111]">
               Business
             </span>
           </div>
@@ -38,10 +38,10 @@ export default async function BusinessPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="mb-1 text-2xl font-bold tracking-tight text-zinc-100 md:text-3xl">
+        <h1 className="text-newsprint-h3 mb-1 text-[#111111]">
           Verify credential
         </h1>
-        <p className="mb-8 text-zinc-400">
+        <p className="font-body mb-8 text-[#111111]/70">
           Enter a user&apos;s wallet address or scan their QR code to verify their
           ZeroPass credential.
         </p>

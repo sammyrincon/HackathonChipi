@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -26,8 +26,6 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircleIcon } from "lucide-react";
 import { useCreateWallet, Chain } from "@chipi-stack/nextjs";
 import { useAuth } from "@clerk/nextjs";
 
@@ -45,14 +43,14 @@ const FormSchema = z
     path: ["confirmPin"],
   });
 
-export function CreateWalletDialog() {
+export function CreateWalletDialog({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) {
   const { getToken, userId: clerkUserId } = useAuth();
-  const {
-    createWalletAsync,
-    isLoading,
-    isSuccess,
-    data: walletDetails,
-  } = useCreateWallet();
+  const [open, setOpen] = useState(false);
+  const { createWalletAsync, isLoading } = useCreateWallet();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -78,15 +76,17 @@ export function CreateWalletDialog() {
         },
         bearerToken: token,
       });
-      toast.success("Wallet created successfully!");
       form.reset();
+      setOpen(false);
+      onSuccess?.();
     } catch (error) {
       toast.error("Failed to create wallet");
       console.error("Wallet creation error:", error);
     }
   };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">Create Wallet</Button>
       </DialogTrigger>
@@ -97,90 +97,57 @@ export function CreateWalletDialog() {
           <DialogDescription>
             Create a PIN to protect your wallet and funds
           </DialogDescription>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="pin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Enter PIN</FormLabel>
-                    <FormControl>
-                      <InputOTP maxLength={4} {...field}>
-                        <InputOTPGroup>
-                          <InputOTPSlot index={0} />
-                          <InputOTPSlot index={1} />
-                          <InputOTPSlot index={2} />
-                          <InputOTPSlot index={3} />
-                        </InputOTPGroup>
-                      </InputOTP>
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm PIN</FormLabel>
-                    <FormControl>
-                      <InputOTP maxLength={4} {...field}>
-                        <InputOTPGroup>
-                          <InputOTPSlot index={0} />
-                          <InputOTPSlot index={1} />
-                          <InputOTPSlot index={2} />
-                          <InputOTPSlot index={3} />
-                        </InputOTPGroup>
-                      </InputOTP>
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={isLoading || isSuccess}
-                className="w-full"
-              >
-                {isLoading
-                  ? "Creating..."
-                  : isSuccess
-                    ? "Wallet Created Successfully!"
-                    : "Create Wallet"}
-              </Button>
-            </form>
-          </Form>
         </DialogHeader>
 
-        <DialogFooter>
-          {/* Wallet Success Details */}
-          {walletDetails && (
-            <Alert>
-              <CheckCircleIcon />
-              <AlertTitle>Wallet Created Successfully!</AlertTitle>
-              <AlertDescription className="space-y-3">
-                <div>
-                  <p>Transaction Hash:</p>
-                  <span className="break-all">{walletDetails.txHash}</span>
-                </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="pin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Enter PIN</FormLabel>
+                  <FormControl>
+                    <InputOTP maxLength={4} {...field}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <div>
-                  <p>Wallet Public Key:</p>
-                  <span className="break-all">
-                    {walletDetails.walletPublicKey}
-                  </span>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-        </DialogFooter>
+            <FormField
+              control={form.control}
+              name="confirmPin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm PIN</FormLabel>
+                  <FormControl>
+                    <InputOTP maxLength={4} {...field}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Creating…" : "Create Wallet"}
+            </Button>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

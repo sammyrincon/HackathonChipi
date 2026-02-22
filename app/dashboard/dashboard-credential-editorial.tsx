@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { KycStatusResponse } from "@/app/api/kyc/status/route";
 
 export function DashboardCredentialEditorial({
@@ -12,8 +13,10 @@ export function DashboardCredentialEditorial({
   const [data, setData] = useState<KycStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [revoking, setRevoking] = useState(false);
 
-  useEffect(() => {
+  const refetch = useCallback(() => {
+    setLoading(true);
     fetch("/api/kyc/status")
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -24,8 +27,27 @@ export function DashboardCredentialEditorial({
       .finally(() => setLoading(false));
   }, []);
 
-  const isVerified = data?.status === "verified";
-  const isExpired = data?.status === "expired";
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  async function handleRevoke() {
+    setRevoking(true);
+    try {
+      const res = await fetch("/api/kyc/revoke", { method: "POST" });
+      if (!res.ok) throw new Error("Revoke failed");
+      await refetch();
+    } catch {
+      setError(true);
+    } finally {
+      setRevoking(false);
+    }
+  }
+
+  const isVerified = data?.status === "VERIFIED";
+  const isExpired = data?.status === "EXPIRED";
+  const isRevoked = data?.status === "REVOKED";
+  const isPending = data?.status === "PENDING";
 
   if (loading) {
     return (
@@ -81,7 +103,19 @@ export function DashboardCredentialEditorial({
         </p>
       )}
 
-      {!isVerified && !isExpired && !error && (
+      {isPending && (
+        <p className="font-body text-sm text-[#111111]/80">
+          Credential pending. Complete payment to activate.
+        </p>
+      )}
+
+      {isRevoked && (
+        <p className="font-body text-sm text-[#111111]/80">
+          This credential has been revoked.
+        </p>
+      )}
+
+      {!isVerified && !isExpired && !isPending && !isRevoked && !error && (
         <p className="font-body text-sm text-[#111111]/70">
           No credential yet. Complete KYC to receive your ZeroPass identity.
         </p>
@@ -91,6 +125,21 @@ export function DashboardCredentialEditorial({
         <p className="font-mono-data truncate pt-2 text-xs text-[#111111]/60">
           Wallet: {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
         </p>
+      )}
+
+      {(isVerified || isExpired) && !isRevoked && (
+        <div className="pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="border-[#CC0000] text-[#CC0000] hover:bg-[#CC0000] hover:text-white"
+            onClick={handleRevoke}
+            disabled={revoking}
+          >
+            {revoking ? "Revoking…" : "Revoke credential"}
+          </Button>
+        </div>
       )}
     </div>
   );

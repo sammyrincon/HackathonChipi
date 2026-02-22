@@ -32,6 +32,7 @@ export function UsdcBalance({
           "text-[#111111]/50 animate-pulse",
           className
         )}
+        suppressHydrationWarning
       >
         $—
       </p>
@@ -40,7 +41,10 @@ export function UsdcBalance({
 
   if (isError) {
     return (
-      <p className={cn(baseClass, "text-[#111111]/50", className)}>
+      <p
+        className={cn(baseClass, "text-[#111111]/50", className)}
+        suppressHydrationWarning
+      >
         $0.00
       </p>
     );
@@ -49,7 +53,10 @@ export function UsdcBalance({
   const balance = Number(usdcBalance?.balance);
 
   return (
-    <p className={cn(baseClass, "text-[#111111]", className)}>
+    <p
+      className={cn(baseClass, "text-[#111111]", className)}
+      suppressHydrationWarning
+    >
       {!isNaN(balance) ? `$${balance.toFixed(2)}` : "$0.00"}
     </p>
   );

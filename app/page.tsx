@@ -32,12 +32,20 @@ export default function Home() {
               receive a verifiable credential linked to your wallet, and prove your identity
               anywhere without sharing personal data.
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
               <Button asChild className="w-full sm:w-auto" size="lg">
                 <Link href="/kyc">Get verified</Link>
               </Button>
               <Button asChild variant="outline" className="w-full sm:w-auto" size="lg">
-                <Link href="/business">Verify a credential</Link>
+                <Link href="/verify">Verify a credential</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="w-full border-2 border-[#111111] sm:w-auto"
+              >
+                <Link href="/dashboard">Go to dashboard</Link>
               </Button>
             </div>
           </div>

@@ -25,8 +25,8 @@ export function DashboardCredentialStatus({
       .finally(() => setLoading(false));
   }, []);
 
-  const isVerified = data?.status === "verified";
-  const isExpired = data?.status === "expired";
+  const isVerified = data?.status === "VERIFIED";
+  const isExpired = data?.status === "EXPIRED";
 
   return (
     <Card className="border-[#111111] bg-[#F9F9F7]">

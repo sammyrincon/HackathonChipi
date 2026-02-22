@@ -42,7 +42,9 @@ export default function RootLayout({children}: {
           <body className={`${playfair.variable} ${lora.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
             {children}
             <Toaster />
-            <ReactQueryDevtools initialIsOpen={false} />
+            {process.env.NODE_ENV === "development" && (
+              <ReactQueryDevtools initialIsOpen={false} />
+            )}
           </body>
         </html>
       </ChipiProvider>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { WalletPinDialog } from "@/components/wallet-pin-dialog";
+import { CreateWalletDialog } from "@/components/create-wallet.dialog";
 import { toast } from "sonner";
 import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -73,7 +74,7 @@ function StageIndicator({ stage }: { stage: Stage }) {
 
 export function KycForm() {
   const { getToken, userId: clerkUserId } = useAuth();
-  const { data: walletResponse } = useGetWallet({ getBearerToken: getToken });
+  const { data: walletResponse, refetch: refetchWallet } = useGetWallet({ getBearerToken: getToken });
   const { transferAsync, isLoading: loadingTransfer } = useTransfer();
   const { recordSendTransactionAsync, isLoading: loadingRecord } = useRecordSendTransaction();
   const { wallet: customerWallet } = useChipiWallet({
@@ -86,6 +87,11 @@ export function KycForm() {
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [pinOpen, setPinOpen] = useState(false);
   const [credential, setCredential] = useState<KycCredentialResponse | null>(null);
+  const [simulating, setSimulating] = useState(false);
+
+  const allowFakePayments =
+    typeof process.env.NEXT_PUBLIC_ALLOW_FAKE_PAYMENTS !== "undefined" &&
+    process.env.NEXT_PUBLIC_ALLOW_FAKE_PAYMENTS === "true";
 
   const walletAddress =
     walletResponse?.normalizedPublicKey ?? walletResponse?.publicKey ?? "";
@@ -96,10 +102,6 @@ export function KycForm() {
     e.preventDefault();
     if (!idFile || !selfieFile) {
       toast.error("Please upload both ID and selfie");
-      return;
-    }
-    if (!walletAddress) {
-      toast.error("No Chipi wallet found. Create one from the home page first.");
       return;
     }
     setStage("payment");
@@ -257,29 +259,89 @@ export function KycForm() {
               </div>
             </div>
 
-            {walletAddress && (
-              <p className="font-body text-xs text-[#111111]/70">
-                Paying from:{" "}
-                <code className="font-mono-data">
-                  {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
-                </code>
-              </p>
-            )}
+            {walletAddress ? (
+              <>
+                <p className="font-body text-xs text-[#111111]/70">
+                  Paying from:{" "}
+                  <code className="font-mono-data">
+                    {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
+                  </code>
+                </p>
 
-            <Button
-              onClick={() => setPinOpen(true)}
-              disabled={loadingPayment}
-              className="w-full"
-            >
-              {loadingPayment ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Pay 1 USDC with Chipi Wallet"
-              )}
-            </Button>
+                <Button
+                  onClick={() => setPinOpen(true)}
+                  disabled={loadingPayment}
+                  className="w-full"
+                >
+                  {loadingPayment ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Pay 1 USDC with Chipi Wallet"
+                  )}
+                </Button>
+
+                {allowFakePayments && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-[#111111]/50"
+                    disabled={loadingPayment || simulating}
+                    onClick={async () => {
+                      setSimulating(true);
+                      try {
+                        toast.loading("Simulating payment...", { id: "kyc-sim" });
+                        const res = await fetch("/api/kyc", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            walletAddress,
+                            transactionHash: "0xsim",
+                          }),
+                        });
+                        if (!res.ok) {
+                          const data = (await res.json().catch(() => ({}))) as { error?: string };
+                          throw new Error(data.error ?? "Simulation failed");
+                        }
+                        const data = (await res.json()) as KycCredentialResponse;
+                        toast.success("Credential issued (simulated)", { id: "kyc-sim" });
+                        setCredential(data);
+                        setStage("issued");
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Simulation failed", {
+                          id: "kyc-sim",
+                        });
+                      } finally {
+                        setSimulating(false);
+                      }
+                    }}
+                  >
+                    {simulating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Simulating...
+                      </>
+                    ) : (
+                      "Simulate payment (dev only)"
+                    )}
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 space-y-3">
+                <p className="font-body text-sm text-[#111111]">
+                  No Chipi wallet found. Create one to continue with payment.
+                </p>
+                <CreateWalletDialog
+                  onSuccess={() => {
+                    toast.success("Wallet created! Now you can pay for your credential.");
+                    void refetchWallet();
+                  }}
+                />
+              </div>
+            )}
 
             <Button
               variant="ghost"

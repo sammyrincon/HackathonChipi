@@ -17,9 +17,21 @@ export const txHashSchema = z
 
 export const kycSubmitSchema = z.object({
   walletAddress: z.string().trim().min(0).max(128).optional(),
-  /** Real tx hash or "0xsim" for dev when ALLOW_FAKE_PAYMENTS=true */
-  transactionHash: z.union([txHashSchema, z.literal("0xsim")]).optional(),
+  /** Real tx hash, "0xsim" for dev, or "0xDEMO_*" for demo mode (no RPC) */
+  transactionHash: z
+    .union([
+      txHashSchema,
+      z.literal("0xsim"),
+      z.string().trim().regex(/^0xDEMO_\d+$/, "Invalid demo tx hash"),
+    ])
+    .optional(),
   /** Simulated KYC payload (demo only, not stored as real docs) */
+  kycData: z
+    .object({
+      fullName: z.string().trim().max(200).optional(),
+      country: z.string().trim().max(4).optional(),
+    })
+    .optional(),
   fullName: z.string().trim().min(1).max(200).optional(),
   country: z.string().trim().min(1).max(4).optional(),
 });

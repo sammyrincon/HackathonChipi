@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifySchema } from "@/lib/validators";
 import { checkRateLimit } from "@/lib/rateLimit";
+import type { CredentialStatus } from "@prisma/client";
 
 export type VerifyResponse = {
   verified: boolean;
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     const credential = await prisma.credential.findFirst({
       where: {
         walletAddress: { equals: walletLower, mode: "insensitive" },
-        status: "verified",
+        status: "verified" as CredentialStatus,
         expiresAt: { gt: now },
       },
     });

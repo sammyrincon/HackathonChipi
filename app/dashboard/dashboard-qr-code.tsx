@@ -32,7 +32,7 @@ export function DashboardQrCode({ walletAddress }: { walletAddress: string }) {
         <CardContent className="flex flex-col items-center gap-4 pt-2">
           <div className="rounded-none border border-[#111111] bg-white p-4">
             <QRCodeSVG
-              value={walletAddress}
+              value={JSON.stringify({ walletAddress })}
               size={180}
               bgColor="#ffffff"
               fgColor="#111111"

@@ -1,24 +1,18 @@
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  SignInButton,
-  SignUpButton,
-} from "@clerk/nextjs";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { CryptoWalletSection } from "@/components/crypto-wallet-section";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="border-b border-zinc-800/80 bg-zinc-900/40 backdrop-blur-sm px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
+    <div className="min-h-screen newsprint-bg text-[#111111]">
+      <header className="border-b-4 border-[#111111] bg-newsprint px-4 py-3">
+        <div className="mx-auto flex max-w-screen-xl items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-violet-400" />
-            <span className="text-lg font-semibold tracking-tight">ZeroPass</span>
-            <span className="text-xs text-zinc-500">Verify once, access anywhere</span>
+            <ShieldCheck className="h-6 w-6 text-[#CC0000]" />
+            <span className="font-headline text-lg font-semibold tracking-tight uppercase">
+              ZeroPass
+            </span>
           </div>
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
@@ -26,52 +20,90 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-12 md:py-16">
-        <SignedOut>
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8 md:p-12 text-center shadow-xl">
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-100 md:text-4xl">
-              Bienvenido a Hackathon Chipi
+      <main>
+        {/* Hero */}
+        <section className="border-b-2 border-[#111111] px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-screen-xl">
+            <h1 className="font-headline text-5xl font-bold uppercase leading-[0.95] tracking-tight text-[#111111] sm:text-6xl md:text-7xl">
+              Verify once. Access anywhere.
             </h1>
-            <p className="mt-3 text-zinc-400">
-              Inicia sesión para usar tu wallet y ZeroPass.
+            <p className="mt-6 max-w-2xl font-body text-lg leading-relaxed text-[#111111]/80">
+              ZeroPass issues a privacy-preserving credential on Starknet. Complete KYC once,
+              receive a verifiable credential linked to your wallet, and prove your identity
+              anywhere without sharing personal data.
             </p>
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <SignInButton mode="modal">
-                <Button className="w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white border-0">
-                  Iniciar sesión
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button variant="outline" className="w-full sm:w-auto border-zinc-600 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
-                  Crear cuenta
-                </Button>
-              </SignUpButton>
-            </div>
-          </div>
-        </SignedOut>
-
-        <SignedIn>
-          <div className="space-y-8">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-100 md:text-3xl">
-                Tu wallet
-              </h1>
-            </div>
-
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow-xl">
-              <CryptoWalletSection />
-            </div>
-
-            <div className="flex justify-center">
-              <Button
-                asChild
-                className="bg-violet-600 hover:bg-violet-500 text-white border-0"
-              >
-                <Link href="/dashboard">ZeroPass dashboard</Link>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <Button asChild className="w-full sm:w-auto" size="lg">
+                <Link href="/kyc">Get verified</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full sm:w-auto" size="lg">
+                <Link href="/business">Verify a credential</Link>
               </Button>
             </div>
           </div>
-        </SignedIn>
+        </section>
+
+        {/* How it works */}
+        <section className="border-b-2 border-[#111111] px-4 py-16">
+          <div className="mx-auto max-w-screen-xl">
+            <h2 className="font-headline mb-10 text-3xl font-bold uppercase tracking-tight text-[#111111] md:text-4xl">
+              How it works
+            </h2>
+            <div className="grid grid-cols-1 border border-[#111111] md:grid-cols-3">
+              <div className="border-b border-[#111111] p-6 md:border-b-0 md:border-r">
+                <p className="font-mono-data text-xs uppercase tracking-widest text-[#111111]/70">
+                  Step 1
+                </p>
+                <h3 className="font-headline mt-2 text-xl font-bold text-[#111111] md:text-2xl">
+                  Complete KYC
+                </h3>
+                <p className="mt-2 font-body text-sm leading-relaxed text-[#111111]/80">
+                  Upload your ID and a selfie. Your wallet is created during the flow. One-time payment of 1 USDC to issue your credential.
+                </p>
+              </div>
+              <div className="border-b border-[#111111] p-6 md:border-b-0 md:border-r">
+                <p className="font-mono-data text-xs uppercase tracking-widest text-[#111111]/70">
+                  Step 2
+                </p>
+                <h3 className="font-headline mt-2 text-xl font-bold text-[#111111] md:text-2xl">
+                  Receive credential
+                </h3>
+                <p className="mt-2 font-body text-sm leading-relaxed text-[#111111]/80">
+                  Your ZeroPass credential is issued on Starknet and linked to your Chipi wallet. No personal data is stored on-chain.
+                </p>
+              </div>
+              <div className="p-6">
+                <p className="font-mono-data text-xs uppercase tracking-widest text-[#111111]/70">
+                  Step 3
+                </p>
+                <h3 className="font-headline mt-2 text-xl font-bold text-[#111111] md:text-2xl">
+                  Access anywhere
+                </h3>
+                <p className="mt-2 font-body text-sm leading-relaxed text-[#111111]/80">
+                  Show your QR code or share your wallet address. Businesses verify your credential instantly—no forms, no repeated KYC.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats bar */}
+        <section className="border-b-2 border-[#111111] bg-[#111111] px-4 py-4">
+          <div className="mx-auto max-w-screen-xl">
+            <p className="font-mono-data text-center text-sm font-medium uppercase tracking-widest text-[#4ade80] md:text-base">
+              10,000+ VERIFICATIONS | STARKNET POWERED | GASLESS TRANSACTIONS
+            </p>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-newsprint px-4 py-6">
+          <div className="mx-auto max-w-screen-xl">
+            <p className="font-mono-data text-center text-xs uppercase tracking-widest text-[#111111]/70">
+              ZEROPASS © 2026 | Built on Starknet
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
   );

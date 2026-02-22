@@ -1,5 +1,5 @@
 import { type Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display, Lora, Inter, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ChipiProvider } from "@chipi-stack/nextjs";
 import { Toaster } from "sonner";
@@ -7,13 +7,23 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display({
+  variable: "--font-headline",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const lora = Lora({
+  variable: "--font-body",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-ui",
+  subsets: ["latin"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -28,8 +38,8 @@ export default function RootLayout({children}: {
   return (
     <ClerkProvider afterSignOutUrl="/">
       <ChipiProvider>
-        <html lang="en" className="dark" suppressHydrationWarning>
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <html lang="en" suppressHydrationWarning>
+          <body className={`${playfair.variable} ${lora.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
             {children}
             <Toaster />
             <ReactQueryDevtools initialIsOpen={false} />

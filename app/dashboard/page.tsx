@@ -3,13 +3,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { getChipiServer } from "@chipi-stack/nextjs/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WalletSummary } from "@/components/wallet-summary";
-import { DashboardCredentialStatus } from "./dashboard-credential-status";
+import { DashboardCredentialEditorial } from "./dashboard-credential-editorial";
+import { DashboardWalletHitCounter } from "./dashboard-wallet-hitcounter";
 import { DashboardRecentActivity } from "./dashboard-recent-activity";
-import { DashboardQrCode } from "./dashboard-qr-code";
-import { ShieldCheck, Wallet, Activity, ArrowLeft } from "lucide-react";
 
 export const metadata = {
   title: "Dashboard | ZeroPass",
@@ -25,7 +22,7 @@ export default async function DashboardPage() {
   try {
     walletResponse = await chipiServer.getWallet({ externalUserId: userId });
   } catch {
-    // Wallet not found or Chipi API unavailable — continue with no wallet
+    // Wallet not found or Chipi API unavailable
   }
 
   const normalizedPublicKey = walletResponse?.normalizedPublicKey ?? "";
@@ -33,77 +30,69 @@ export default async function DashboardPage() {
   const hasWallet = Boolean(walletResponse);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="sticky top-0 z-10 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" asChild>
-              <Link href="/" aria-label="Back to home">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
+    <div className="min-h-screen newsprint-bg text-[#111111]">
+      {/* Header bar */}
+      <header className="border-b-4 border-[#111111] bg-newsprint px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="font-headline text-xl font-bold uppercase tracking-tight md:text-2xl">
+            ZeroPass Identity Network
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="border-transparent" asChild>
+              <Link href="/">Home</Link>
             </Button>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-violet-400" />
-              <span className="text-lg font-semibold tracking-tight">ZeroPass</span>
-            </div>
+            <UserButton afterSignOutUrl="/" />
           </div>
-          <UserButton afterSignOutUrl="/" />
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-1 text-2xl font-bold tracking-tight text-zinc-100 md:text-3xl">
-          Dashboard
-        </h1>
-        <p className="mb-8 text-zinc-400">
-          Verify once, access anywhere. Your credential status and activity.
+      {/* Metadata bar */}
+      <div className="border-b-2 border-[#111111] bg-newsprint px-4 py-2">
+        <p className="text-newsprint-meta text-[#111111]/80">
+          Vol. 1 | Est. 2026 | Starknet Edition
         </p>
+      </div>
 
-        <div className="mb-6 grid gap-6 md:grid-cols-2">
-          <DashboardCredentialStatus walletAddress={normalizedPublicKey || walletPublicKey} />
-
-          <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
-            <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-              <Wallet className="h-5 w-5 text-violet-400" />
-              <CardTitle className="text-zinc-100">Wallet balance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasWallet ? (
-                <WalletSummary
-                  normalizedPublicKey={normalizedPublicKey}
-                  walletPublicKey={walletPublicKey}
-                />
-              ) : (
-                <p className="text-sm text-zinc-400">
-                  No Chipi wallet yet. Create one from the home page to link your
-                  ZeroPass credential.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <DashboardQrCode walletAddress={normalizedPublicKey || walletPublicKey} />
-
-        <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-            <Activity className="h-5 w-5 text-violet-400" />
-            <CardTitle className="text-zinc-100">Recent activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DashboardRecentActivity />
-          </CardContent>
-        </Card>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Button asChild className="bg-violet-600 hover:bg-violet-500 text-white border-0">
+      {/* Navigation */}
+      <nav className="border-b-2 border-[#111111] bg-newsprint px-4 py-3">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm" className="rounded-none border-[#111111]">
             <Link href="/kyc">Complete KYC</Link>
           </Button>
-          <Button asChild variant="outline" className="border-zinc-600 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100">
+          <Button asChild variant="outline" size="sm" className="rounded-none border-[#111111]">
             <Link href="/business">Business verification</Link>
           </Button>
         </div>
+      </nav>
+
+      {/* Main 2-column grid: credential and wallet side by side, equal height */}
+      <main className="newsprint-texture grid grid-cols-1 grid-rows-[1fr] border-b-2 border-[#111111] md:grid-cols-2 md:gap-0">
+        {/* Left column: Credential card */}
+        <div className="flex min-h-0 flex-col border-r-0 border-[#111111] p-6 md:border-r">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="border-4 border-[#111111] bg-newsprint p-6">
+              <DashboardCredentialEditorial walletAddress={normalizedPublicKey || walletPublicKey} />
+            </div>
+          </div>
+        </div>
+
+        {/* Right column: Wallet hit-counter */}
+        <div className="flex min-h-0 flex-col items-start p-6 md:items-stretch">
+          <DashboardWalletHitCounter
+            hasWallet={hasWallet}
+            normalizedPublicKey={normalizedPublicKey}
+            walletPublicKey={walletPublicKey}
+          />
+        </div>
       </main>
+
+      {/* Bottom: Recent activity as newspaper table */}
+      <section className="border-b-2 border-[#111111] bg-newsprint px-4 py-6">
+        <h2 className="text-newsprint-h2 mb-4 uppercase tracking-tight">
+          Recent activity
+        </h2>
+        <DashboardRecentActivity />
+      </section>
     </div>
   );
 }

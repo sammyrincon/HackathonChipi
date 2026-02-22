@@ -29,38 +29,38 @@ export function DashboardCredentialStatus({
   const isExpired = data?.status === "expired";
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900/50 shadow-lg">
+    <Card className="border-[#111111] bg-[#F9F9F7]">
       <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
         {isVerified ? (
-          <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          <ShieldCheck className="h-5 w-5 text-[#CC0000]" />
         ) : (
-          <ShieldX className="h-5 w-5 text-zinc-500" />
+          <ShieldX className="h-5 w-5 text-[#111111]/60" />
         )}
-        <CardTitle className="text-zinc-100">ZeroPass credential</CardTitle>
+        <CardTitle className="font-headline text-[#111111]">ZeroPass credential</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {loading && (
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <div className="flex items-center gap-2 font-body text-sm text-[#111111]/70">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             Checking credential...
           </div>
         )}
         {!loading && error && (
-          <p className="text-sm text-zinc-500">Could not load credential status.</p>
+          <p className="font-body text-sm text-[#111111]/70">Could not load credential status.</p>
         )}
         {!loading && !error && isVerified && (
           <>
-            <p className="text-sm text-emerald-400">Verified — linked to your wallet</p>
+            <p className="font-body text-sm text-[#CC0000]">Verified — linked to your wallet</p>
             {data?.credentialId && (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[#111111]/70">
                 ID:{" "}
-                <code className="rounded bg-zinc-800 px-1 py-0.5 font-mono text-zinc-400">
+                <code className="font-mono-data bg-[#111111]/5 border border-[#111111] px-1 py-0.5 text-[#111111]">
                   {data.credentialId}
                 </code>
               </p>
             )}
             {data?.expiresAt && (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[#111111]/70">
                 Expires:{" "}
                 {new Date(data.expiresAt).toLocaleDateString("en-US", {
                   year: "numeric",
@@ -72,15 +72,15 @@ export function DashboardCredentialStatus({
           </>
         )}
         {!loading && !error && isExpired && (
-          <p className="text-sm text-amber-400">Credential expired. Please complete KYC again.</p>
+          <p className="font-body text-sm text-[#CC0000]">Credential expired. Please complete KYC again.</p>
         )}
         {!loading && !error && !isVerified && !isExpired && (
-          <p className="text-sm text-zinc-400">
+          <p className="font-body text-sm text-[#111111]/70">
             No credential yet. Complete KYC to get your ZeroPass credential.
           </p>
         )}
         {walletAddress && (
-          <p className="truncate font-mono text-xs text-zinc-500">
+          <p className="truncate font-mono-data text-xs text-[#111111]/70">
             {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
           </p>
         )}

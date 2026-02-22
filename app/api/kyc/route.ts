@@ -43,8 +43,6 @@ export async function POST(request: NextRequest) {
     const { walletAddress: rawWallet, transactionHash: txHash } = parsed.data;
     const walletAddress = rawWallet?.trim() ?? "";
 
-    console.log("[POST /api/kyc] received walletAddress:", JSON.stringify(walletAddress), "txHash:", txHash ?? null);
-
     if (!walletAddress) {
       return NextResponse.json(
         { error: "walletAddress is required" },

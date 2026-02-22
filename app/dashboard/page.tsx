@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DashboardCredentialEditorial } from "./dashboard-credential-editorial";
 import { DashboardWalletHitCounter } from "./dashboard-wallet-hitcounter";
 import { DashboardRecentActivity } from "./dashboard-recent-activity";
+import { DashboardQrCode } from "./dashboard-qr-code";
 
 export const metadata = {
   title: "Dashboard | ZeroPass",
@@ -73,6 +74,11 @@ export default async function DashboardPage() {
             <div className="border-4 border-[#111111] bg-newsprint p-6">
               <DashboardCredentialEditorial walletAddress={normalizedPublicKey || walletPublicKey} />
             </div>
+            {(normalizedPublicKey || walletPublicKey) && (
+              <div className="mt-4">
+                <DashboardQrCode walletAddress={normalizedPublicKey || walletPublicKey} />
+              </div>
+            )}
           </div>
         </div>
 

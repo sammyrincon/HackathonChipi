@@ -6,26 +6,15 @@ datasource db {
   provider = "postgresql"
 }
 
-enum CredentialStatus {
-  PENDING
-  VERIFIED
-  REVOKED
-  EXPIRED
-}
-
 model Credential {
-  id               String            @id @default(cuid())
-  clerkUserId      String            @unique
-  walletAddress    String
-  status           CredentialStatus  @default(PENDING)
-  credentialId     String            @unique
-  transactionHash  String?
-  issuedAt         DateTime?
-  expiresAt        DateTime?
-  revokedAt        DateTime?
-  lastVerifiedAt   DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-
-  @@index([walletAddress, status, expiresAt])
+  id              String   @id @default(cuid())
+  clerkUserId     String   @unique
+  walletAddress   String
+  status          String   @default("verified")
+  credentialId    String   @unique
+  issuedAt        DateTime @default(now())
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  transactionHash String?
 }

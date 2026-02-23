@@ -3,12 +3,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { getOrCreateChipiServer } from "@/lib/chipi-server";
+import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { CredentialStatusPanel } from "./credential-status-panel";
 import { DashboardWalletHitCounter } from "./dashboard-wallet-hitcounter";
 import { DashboardRecentActivity } from "./dashboard-recent-activity";
 import { DashboardQrCode } from "./dashboard-qr-code";
+import { DashboardRefreshOnFocus } from "./dashboard-refresh-on-focus";
+import { DashboardRefreshButton } from "./dashboard-refresh-button";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +36,16 @@ export default async function DashboardPage() {
   const walletPublicKey = walletResponse?.publicKey ?? "";
   const hasWallet = Boolean(walletResponse);
 
+  // Credential wallet is the authoritative address for status, QR, and copy —
+  // it may differ from the Chipi wallet when a demo or new wallet was used during KYC.
+  const credential = await prisma.credential.findFirst({
+    where: { clerkUserId: userId },
+    orderBy: { issuedAt: "desc" },
+    select: { walletAddress: true },
+  });
+  const effectiveWallet =
+    credential?.walletAddress || normalizedPublicKey || walletPublicKey;
+
   return (
     <div className="min-h-screen newsprint-bg text-[#111111]">
       <header className="border-b-8 border-[#111111] bg-newsprint py-4">
@@ -40,7 +53,8 @@ export default async function DashboardPage() {
           <h1 className="font-headline text-xl font-bold uppercase tracking-tight md:text-2xl">
             ZeroPass Identity Network
           </h1>
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <DashboardRefreshButton />
             <Button variant="outline" size="sm" className="mr-24 gap-2" asChild>
               <Link href="/">
                 <ArrowLeft className="h-4 w-4" />
@@ -69,6 +83,7 @@ export default async function DashboardPage() {
         </div>
       </nav>
 
+      <DashboardRefreshOnFocus />
       <main className="newsprint-texture grid grid-cols-1 border-b-2 border-[#111111] md:grid-cols-2 md:gap-0">
         <div className="flex min-h-0 flex-col border-r-0 border-[#111111] md:border-r md:border-[#111111]">
           <div className="flex min-h-0 flex-1 flex-col p-8">
@@ -106,13 +121,13 @@ export default async function DashboardPage() {
               </svg>
               <div className="relative z-10">
                 <CredentialStatusPanel
-                  walletAddress={normalizedPublicKey || walletPublicKey || null}
+                  walletAddress={effectiveWallet || null}
                 />
               </div>
             </div>
-            {(normalizedPublicKey || walletPublicKey) && (
+            {effectiveWallet && (
               <div className="mt-6">
-                <DashboardQrCode walletAddress={normalizedPublicKey || walletPublicKey} />
+                <DashboardQrCode walletAddress={effectiveWallet} />
               </div>
             )}
           </div>
@@ -120,9 +135,9 @@ export default async function DashboardPage() {
 
         <div className="flex max-h-48 flex-col items-center justify-center border-t border-[#111111] bg-[#111111] p-6 md:border-t-0 md:border-l-0">
           <DashboardWalletHitCounter
-            hasWallet={hasWallet}
-            normalizedPublicKey={normalizedPublicKey}
-            walletPublicKey={walletPublicKey}
+            hasWallet={hasWallet || !!effectiveWallet}
+            normalizedPublicKey={effectiveWallet || normalizedPublicKey}
+            walletPublicKey={effectiveWallet || walletPublicKey}
           />
         </div>
       </main>

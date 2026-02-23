@@ -20,6 +20,7 @@ import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2, UploadCloud, Ch
 import Link from "next/link";
 import type { KycCredentialResponse } from "@/app/api/kyc/route";
 import { formatWalletAddress } from "@/lib/utils";
+import { SessionKeySetup } from "./session-key-setup";
 
 type Stage = "upload" | "payment" | "issued";
 
@@ -91,6 +92,7 @@ export function KycForm() {
   const [pinOpen, setPinOpen] = useState(false);
   const [credential, setCredential] = useState<KycCredentialResponse | null>(null);
   const [simulating, setSimulating] = useState(false);
+  const [sessionKeyDismissed, setSessionKeyDismissed] = useState(false);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(KYC_STAGE_KEY);
@@ -308,35 +310,8 @@ export function KycForm() {
     [customerWallet, walletAddress, getToken, transferAsync, recordSendTransactionAsync]
   );
 
-  const showDebugPanel =
-    process.env.NODE_ENV === "development" || demoMode || demoPayments;
-
-  function summarize(addr: string | null): string {
-    if (!addr) return "(none)";
-    if (addr.length <= 18) return addr;
-    return formatWalletAddress(addr);
-  }
-
   return (
     <div className="space-y-12">
-      {showDebugPanel && (
-        <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 font-mono text-xs text-[#111111]/90">
-          <p className="font-semibold uppercase tracking-wider text-[#111111]">Debug</p>
-          <ul className="mt-2 space-y-1">
-            <li>demoMode: {String(demoMode)}</li>
-            <li>demoPayments: {String(demoPayments)}</li>
-            <li>allowFakePayments: {String(allowFakePayments)}</li>
-            <li>chipiWalletAddress: {summarize(chipiWalletAddress || null)}</li>
-            <li>demoWalletAddress: {summarize(demoWalletAddress)}</li>
-            <li>walletAddress (final): {summarize(walletAddress || null)}</li>
-            <li>stage: {stage}</li>
-            {stage === "payment" && (
-              <li>preparingDemoWallet: {String(preparingDemoWallet)}</li>
-            )}
-          </ul>
-        </div>
-      )}
-
       <StageIndicator stage={stage} />
 
       {/* Stage 1: KYC simulated (no real docs stored) */}
@@ -665,6 +640,9 @@ export function KycForm() {
                 </p>
               )}
             </div>
+            {!sessionKeyDismissed && (
+              <SessionKeySetup onDone={() => setSessionKeyDismissed(true)} />
+            )}
             <Button asChild className="mt-2 w-full">
               <Link href="/dashboard">Go to dashboard</Link>
             </Button>

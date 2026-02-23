@@ -45,10 +45,10 @@ export function WalletPinDialog({
         if (!v) onCancel();
       }}
     >
-      <DialogContent>
+      <DialogContent className="border-2 border-[#111111] p-8">
         <DialogHeader>
-          <DialogTitle>Enter your PIN</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="font-headline text-[#111111]">Enter your PIN</DialogTitle>
+          <DialogDescription className="font-body text-[#111111]/70">
             Your wallet is protected — enter your PIN to continue.
           </DialogDescription>
           <Label>PIN (4 digits)</Label>
@@ -70,7 +70,12 @@ export function WalletPinDialog({
           </InputOTP>
         </DialogHeader>
         <DialogFooter>
-          <Button type="button" disabled={disabled} onClick={handleSubmit}>
+          <Button
+            type="button"
+            disabled={disabled}
+            onClick={handleSubmit}
+            className="border-2 border-[#111111] hover:bg-[#111111] hover:text-white transition-colors"
+          >
             {isSubmitting ? "Submitting..." : "Continue"}
           </Button>
         </DialogFooter>

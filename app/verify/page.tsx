@@ -11,8 +11,8 @@ export const metadata = {
 export default function VerifyPage() {
   return (
     <div className="min-h-screen newsprint-bg text-[#111111]">
-      <header className="sticky top-0 z-10 border-b-4 border-[#111111] bg-newsprint px-4 py-3">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
+      <header className="sticky top-0 z-10 border-b-8 border-[#111111] bg-newsprint py-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -25,7 +25,7 @@ export default function VerifyPage() {
               </Link>
             </Button>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-[#CC0000]" />
+              <ShieldCheck className="animate-float h-6 w-6 text-[#CC0000]" />
               <span className="font-headline text-lg font-semibold tracking-tight">
                 ZeroPass
               </span>
@@ -37,8 +37,8 @@ export default function VerifyPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-newsprint-h3 mb-1 text-[#111111]">
+      <main className="py-12">
+        <h1 className="text-newsprint-h3 mb-2 text-[#111111]">
           Verify credential
         </h1>
         <p className="font-body mb-8 text-[#111111]/70">

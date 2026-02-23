@@ -1,4 +1,4 @@
-import { getChipiServer } from "@chipi-stack/nextjs/server";
+import { getOrCreateChipiServer } from "@/lib/chipi-server";
 import Image from "next/image";
 import {
   Card,
@@ -17,7 +17,7 @@ export default async function SkuDetailPage({
 }) {
   const { id: skuId } = await params;
   const { userId: externalUserId } = await auth();
-  const chipiServer = getChipiServer();
+  const chipiServer = getOrCreateChipiServer();
   const sku = await chipiServer.getSku(skuId);
   const walletResponse = await chipiServer.getWallet({
     externalUserId: externalUserId || "",

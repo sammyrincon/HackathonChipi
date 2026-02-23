@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import {
   useGetWallet,
@@ -12,16 +12,17 @@ import {
 } from "@chipi-stack/nextjs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { WalletPinDialog } from "@/components/wallet-pin-dialog";
 import { CreateWalletDialog } from "@/components/create-wallet.dialog";
 import { toast } from "sonner";
-import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2, UploadCloud, Check } from "lucide-react";
 import Link from "next/link";
 import type { KycCredentialResponse } from "@/app/api/kyc/route";
 
 type Stage = "upload" | "payment" | "issued";
+
+const KYC_STAGE_KEY = "kyc-form-stage";
 
 function StageIndicator({ stage }: { stage: Stage }) {
   const steps: { key: Stage; label: string; icon: React.ElementType }[] = [
@@ -32,15 +33,15 @@ function StageIndicator({ stage }: { stage: Stage }) {
   const currentIndex = steps.findIndex((s) => s.key === stage);
 
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
+    <div className="mb-12 flex items-center justify-center gap-2">
       {steps.map((step, i) => {
         const done = i < currentIndex;
         const active = i === currentIndex;
         return (
           <div key={step.key} className="flex items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-2">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-none border-2 border-[#111111] text-xs font-semibold transition-all ${
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-none border-2 border-[#111111] text-xs font-semibold transition-all ${
                   done
                     ? "bg-[#CC0000]/20 text-[#CC0000]"
                     : active
@@ -48,7 +49,7 @@ function StageIndicator({ stage }: { stage: Stage }) {
                     : "bg-[#F9F9F7] text-[#111111]/50"
                 }`}
               >
-                {done ? <CheckCircle2 className="h-4 w-4" /> : <step.icon className="h-4 w-4" />}
+                {done ? <CheckCircle2 className="h-5 w-5" /> : <step.icon className="h-5 w-5" />}
               </div>
               <span
                 className={`text-[10px] uppercase tracking-widest ${
@@ -60,7 +61,7 @@ function StageIndicator({ stage }: { stage: Stage }) {
             </div>
             {i < steps.length - 1 && (
               <div
-                className={`mb-4 h-0.5 w-8 transition-colors ${
+                className={`mb-6 h-0.5 w-8 transition-colors ${
                   done ? "bg-[#CC0000]" : "bg-[#111111]/30"
                 }`}
               />
@@ -74,7 +75,7 @@ function StageIndicator({ stage }: { stage: Stage }) {
 
 export function KycForm() {
   const { getToken, userId: clerkUserId } = useAuth();
-  const { data: walletResponse, refetch: refetchWallet } = useGetWallet({ getBearerToken: getToken });
+  const { data: walletResponse } = useGetWallet({ getBearerToken: getToken });
   const { transferAsync, isLoading: loadingTransfer } = useTransfer();
   const { recordSendTransactionAsync, isLoading: loadingRecord } = useRecordSendTransaction();
   const { wallet: customerWallet } = useChipiWallet({
@@ -89,6 +90,16 @@ export function KycForm() {
   const [pinOpen, setPinOpen] = useState(false);
   const [credential, setCredential] = useState<KycCredentialResponse | null>(null);
   const [simulating, setSimulating] = useState(false);
+
+  // Restore stage from sessionStorage after mount (so post-reload we land on payment)
+  useEffect(() => {
+    const saved = sessionStorage.getItem(KYC_STAGE_KEY);
+    if (saved === "upload" || saved === "payment" || saved === "issued") setStage(saved);
+  }, []);
+  // Persist stage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem(KYC_STAGE_KEY, stage);
+  }, [stage]);
 
   const demoMode =
     typeof process.env.NEXT_PUBLIC_DEMO_MODE !== "undefined" &&
@@ -134,11 +145,11 @@ export function KycForm() {
         const jwtToken = await getToken();
         if (!jwtToken) throw new Error("No auth token");
 
-        toast.loading("Sending 0 USDC (Demo)...", { id: "kyc-payment" });
+        toast.loading("Sending 1 USDC…", { id: "kyc-payment" });
 
         const transactionHash = await transferAsync({
           params: {
-            amount: 0,
+            amount: 1,
             encryptKey: pin,
             wallet: {
               publicKey: customerWallet.publicKey,
@@ -157,12 +168,12 @@ export function KycForm() {
             expectedSender: customerWallet.publicKey,
             expectedRecipient: merchantWallet,
             expectedToken: ChainToken.USDC,
-            expectedAmount: "0",
+            expectedAmount: "1",
           },
           bearerToken: jwtToken,
         });
 
-        toast.loading("Issuing credential...", { id: "kyc-payment" });
+        toast.loading("Issuing your credential…", { id: "kyc-payment" });
 
         const res = await fetch("/api/kyc", {
           method: "POST",
@@ -176,7 +187,7 @@ export function KycForm() {
         }
 
         const data = (await res.json()) as KycCredentialResponse;
-        toast.success("ZeroPass credential issued!", { id: "kyc-payment" });
+        toast.success("Credential issued. Verify once, access anywhere.", { id: "kyc-payment" });
         setCredential(data);
         setStage("issued");
       } catch (err) {
@@ -189,13 +200,13 @@ export function KycForm() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <StageIndicator stage={stage} />
 
       {/* Stage 1: KYC simulated (no real docs stored) */}
       {stage === "upload" && (
-        <Card className="border-[#111111] bg-[#F9F9F7]">
-          <CardHeader>
+        <Card className="animate-fade-in-up border border-[#111111] bg-[#F9F9F7] p-8">
+          <CardHeader className="p-0 pb-6">
             <CardTitle className="font-headline text-[#111111]">
               {demoMode ? "KYC simulated" : "Upload documents"}
             </CardTitle>
@@ -205,7 +216,7 @@ export function KycForm() {
                 : "Upload a government-issued ID and a selfie to verify your identity and receive your ZeroPass credential."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6 p-0">
             <form onSubmit={handleSubmitDocs} className="space-y-6">
               {demoMode ? (
                 <div className="space-y-4">
@@ -225,22 +236,60 @@ export function KycForm() {
               ) : (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="id-photo">Photo of ID</Label>
-                    <Input
-                      id="id-photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
-                    />
+                    <Label htmlFor="id-photo" className="font-body text-[#111111]">Photo of ID</Label>
+                    <label
+                      htmlFor="id-photo"
+                      className="flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-[#111111] bg-[#F9F9F7] p-8 text-center transition-colors hover:bg-[#111111]/5"
+                    >
+                      <input
+                        id="id-photo"
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+                      />
+                      {idFile ? (
+                        <>
+                          <span className="animate-checkmark-in flex h-16 w-16 items-center justify-center rounded-none border-2 border-[#CC0000] bg-[#CC0000]/10 text-[#CC0000]">
+                            <Check className="h-8 w-8" strokeWidth={3} />
+                          </span>
+                          <span className="font-mono-data text-sm text-[#111111]">{idFile.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-16 w-16 shrink-0 text-[#111111]/40" aria-hidden />
+                          <span className="font-body text-sm text-[#111111]/70">Click to upload ID photo</span>
+                        </>
+                      )}
+                    </label>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="selfie">Selfie</Label>
-                    <Input
-                      id="selfie"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
-                    />
+                    <Label htmlFor="selfie" className="font-body text-[#111111]">Selfie</Label>
+                    <label
+                      htmlFor="selfie"
+                      className="flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-[#111111] bg-[#F9F9F7] p-8 text-center transition-colors hover:bg-[#111111]/5"
+                    >
+                      <input
+                        id="selfie"
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => setSelfieFile(e.target.files?.[0] ?? null)}
+                      />
+                      {selfieFile ? (
+                        <>
+                          <span className="animate-checkmark-in flex h-16 w-16 items-center justify-center rounded-none border-2 border-[#CC0000] bg-[#CC0000]/10 text-[#CC0000]">
+                            <Check className="h-8 w-8" strokeWidth={3} />
+                          </span>
+                          <span className="font-mono-data text-sm text-[#111111]">{selfieFile.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-16 w-16 shrink-0 text-[#111111]/40" aria-hidden />
+                          <span className="font-body text-sm text-[#111111]/70">Click to upload selfie</span>
+                        </>
+                      )}
+                    </label>
                   </div>
                 </>
               )}
@@ -264,21 +313,21 @@ export function KycForm() {
         </Card>
       )}
 
-      {/* Stage 2: Pay 0 USDC (Demo) */}
+      {/* Stage 2: Pay 1 USDC with Chipi */}
       {stage === "payment" && (
-        <Card className="border-[#111111] bg-[#F9F9F7]">
-          <CardHeader>
+        <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
+          <CardHeader className="p-0 pb-6">
             <CardTitle className="font-headline flex items-center gap-2 text-[#111111]">
               <CreditCard className="h-5 w-5 text-[#CC0000]" />
-              Pay to receive your credential
+              Pay 1 USDC to receive your credential
             </CardTitle>
             <CardDescription className="font-body text-[#111111]/70">
-              A one-time payment of 1 USDC is required to issue your ZeroPass credential.
-              {demoMode ? " In demo mode no real transfer is made." : " The transaction is gasless — no ETH or STRK needed."}
+              One-time 1 USDC payment issues your ZeroPass credential. Gasless — Chipi covers fees.
+              {demoMode ? " In demo mode no real transfer is made." : ""}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 space-y-2">
+          <CardContent className="space-y-6 p-0">
+            <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-2">
               <div className="flex justify-between font-body text-sm">
                 <span className="text-[#111111]/70">ZeroPass credential</span>
                 <span className="font-medium text-[#111111]">1.00 USDC</span>
@@ -339,14 +388,20 @@ export function KycForm() {
                   )}
                 </Button>
               ) : (
-                <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 space-y-3">
+                <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-3">
                   <p className="font-body text-sm text-[#111111]">
                     No Chipi wallet found. Create one to continue.
                   </p>
                   <CreateWalletDialog
                     onSuccess={() => {
-                      toast.success("Wallet created! Now you can pay for your credential.");
-                      void refetchWallet();
+                      void fetch("/api/activity/log", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type: "wallet_created" }),
+                      });
+                      sessionStorage.setItem(KYC_STAGE_KEY, "payment");
+                      toast.success("Wallet created! Reloading…");
+                      setTimeout(() => window.location.reload(), 100);
                     }}
                   />
                 </div>
@@ -368,10 +423,10 @@ export function KycForm() {
                   {loadingPayment ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing...
+                      Processing payment…
                     </>
                   ) : (
-                    "Pay 1 USDC with Chipi Wallet"
+                    "Pay 1 USDC with Chipi"
                   )}
                 </Button>
 
@@ -422,14 +477,20 @@ export function KycForm() {
                 )}
               </>
             ) : (
-              <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 space-y-3">
+              <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-3">
                 <p className="font-body text-sm text-[#111111]">
                   No Chipi wallet found. Create one to continue with payment.
                 </p>
                 <CreateWalletDialog
                   onSuccess={() => {
-                    toast.success("Wallet created! Now you can pay for your credential.");
-                    void refetchWallet();
+                    void fetch("/api/activity/log", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ type: "wallet_created" }),
+                    });
+                    sessionStorage.setItem(KYC_STAGE_KEY, "payment");
+                    toast.success("Wallet created! Reloading…");
+                    setTimeout(() => window.location.reload(), 100);
                   }}
                 />
               </div>
@@ -450,8 +511,8 @@ export function KycForm() {
 
       {/* Stage 3: Credential issued ✅ */}
       {stage === "issued" && credential && (
-        <Card className="border-[#111111] bg-[#F9F9F7]">
-          <CardHeader>
+        <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
+          <CardHeader className="p-0 pb-6">
             <CardTitle className="font-headline flex items-center gap-2 text-[#CC0000]">
               <ShieldCheck className="h-5 w-5" />
               Credential issued ✅
@@ -460,8 +521,8 @@ export function KycForm() {
               {credential.message}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-3 space-y-2 font-body text-sm">
+          <CardContent className="space-y-4 p-0">
+            <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-2 font-body text-sm">
               <p className="text-[#111111]">
                 <span className="text-[#111111]/70">Credential ID: </span>
                 <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">

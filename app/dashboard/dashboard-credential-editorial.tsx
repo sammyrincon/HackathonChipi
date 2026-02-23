@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { KycStatusResponse } from "@/app/api/kyc/status/route";
 
@@ -68,25 +68,29 @@ export function DashboardCredentialEditorial({
 
   return (
     <div className="space-y-4">
-      {/* VERIFIED badge — accent #CC0000 only here */}
+      {/* VERIFIED badge — accent #CC0000 with subtle pulse */}
       {isVerified && (
-        <span className="inline-block border border-[#CC0000] bg-[#CC0000] px-2 py-0.5 font-mono-data text-xs font-semibold uppercase tracking-widest text-white">
+        <span className="animate-badge-pulse inline-block border border-[#CC0000] bg-[#CC0000] px-2 py-0.5 font-mono-data text-xs font-semibold uppercase tracking-widest text-white">
           Verified
         </span>
       )}
 
-      {/* Headline: VERIFIED IDENTITY in Playfair Display text-4xl */}
-      <h2 className="font-headline text-4xl font-bold uppercase tracking-tight text-[#111111]">
-        Verified Identity
-      </h2>
+      {/* Headline: VERIFIED IDENTITY with shield icon */}
+      <div className="flex items-center gap-3">
+        <ShieldCheck className="h-12 w-12 shrink-0 text-[#CC0000]" aria-hidden />
+        <h2 className="font-headline text-3xl font-black uppercase tracking-tight text-[#111111]">
+          Verified Identity
+        </h2>
+      </div>
 
       {isVerified && data?.credentialId && (
         <div className="space-y-1">
           <p className="font-body text-xs uppercase tracking-widest text-[#111111]/70">
             Credential ID
           </p>
-          <p className="font-mono-data break-all text-sm text-[#111111]">
+          <p className="font-mono-data flex flex-wrap items-baseline gap-0.5 break-all text-sm text-[#111111]">
             {data.credentialId}
+            <span className="animate-cursor-blink inline-block h-4 w-[2px] shrink-0 bg-[#111111] align-middle" aria-hidden />
           </p>
         </div>
       )}

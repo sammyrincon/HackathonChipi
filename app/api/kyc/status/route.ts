@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
-import { CredentialStatus } from "@prisma/client";
 
 export type KycStatusResponse = {
   hasCredential: boolean;
@@ -11,12 +10,6 @@ export type KycStatusResponse = {
   issuedAt: string | null;
   expiresAt: string | null;
 };
-
-/** Safe value for VERIFIED to avoid runtime undefined when Prisma enum is not available in bundle */
-const VERIFIED_STATUS =
-  typeof CredentialStatus !== "undefined" && CredentialStatus.VERIFIED != null
-    ? CredentialStatus.VERIFIED
-    : ("VERIFIED" as const);
 
 export async function GET() {
   try {
@@ -45,9 +38,9 @@ export async function GET() {
     const isExpired =
       credential.expiresAt != null && credential.expiresAt < now;
     const derivedStatus: KycStatusResponse["status"] =
-      credential.status === VERIFIED_STATUS && isExpired
+      credential.status === "VERIFIED" && isExpired
         ? "EXPIRED"
-        : credential.status;
+        : (credential.status as KycStatusResponse["status"]);
 
     const response: KycStatusResponse = {
       hasCredential: true,

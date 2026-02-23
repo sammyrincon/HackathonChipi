@@ -110,7 +110,7 @@ export function BusinessVerificationForm() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-[#111111] bg-[#F9F9F7]">
+      <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
         <CardHeader>
           <CardTitle className="font-headline text-[#111111]">By wallet address</CardTitle>
           <CardDescription className="font-body text-[#111111]/70">
@@ -144,7 +144,7 @@ export function BusinessVerificationForm() {
         </CardContent>
       </Card>
 
-      <Card className="border-[#111111] bg-[#F9F9F7]">
+      <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-2 text-[#111111]">
             <QrCode className="h-5 w-5 text-[#CC0000]" />
@@ -191,8 +191,8 @@ export function BusinessVerificationForm() {
         <Card
           className={
             result.verified
-              ? "border-[#111111] bg-[#F9F9F7]"
-              : "border-[#111111] bg-[#F9F9F7]"
+              ? "border-2 border-[#CC0000] bg-[#F9F9F7] p-8"
+              : "border border-[#111111] bg-[#F9F9F7] p-8"
           }
         >
           <CardHeader>

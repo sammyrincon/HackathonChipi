@@ -18,3 +18,13 @@ model Credential {
   updatedAt       DateTime @updatedAt
   transactionHash String?
 }
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  type        String   // "login" | "wallet_created"
+  createdAt   DateTime @default(now())
+
+  @@index([clerkUserId])
+  @@index([createdAt])
+}

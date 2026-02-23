@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { CredentialStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 export type RevokeResponse = {
@@ -26,7 +27,7 @@ export async function POST() {
       );
     }
 
-    if (credential.status === "REVOKED") {
+    if (credential.status === CredentialStatus.REVOKED) {
       return NextResponse.json({
         ok: true,
         status: "REVOKED",
@@ -37,7 +38,7 @@ export async function POST() {
     await prisma.credential.update({
       where: { clerkUserId: userId },
       data: {
-        status: "REVOKED",
+        status: CredentialStatus.REVOKED,
       },
     });
 

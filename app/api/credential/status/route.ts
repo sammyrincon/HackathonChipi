@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { CredentialStatus } from "@prisma/client";
+import { normalizeWallet } from "@/lib/utils";
 
 export type CredentialStatusResponse = {
   exists: boolean;
-  status: string | null;
+  status: CredentialStatus | "EXPIRED" | null;
   expiresAt: string | null;
+  valid: boolean;
 };
-
-function normalizeWallet(wallet: string): string {
-  return wallet.trim().toLowerCase();
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,10 +25,9 @@ export async function GET(request: NextRequest) {
     const walletLower = normalizeWallet(wallet);
 
     const credential = await prisma.credential.findFirst({
-      where: {
-        walletAddress: { equals: walletLower, mode: "insensitive" },
-      },
+      where: { walletAddress: walletLower },
       orderBy: { expiresAt: "desc" },
+      select: { status: true, expiresAt: true },
     });
 
     if (!credential) {
@@ -37,22 +35,29 @@ export async function GET(request: NextRequest) {
         exists: false,
         status: null,
         expiresAt: null,
+        valid: false,
       };
       return NextResponse.json(response);
     }
 
     const now = new Date();
-    const isExpired =
-      credential.expiresAt != null && credential.expiresAt < now;
-    const derivedStatus =
-      credential.status === "VERIFIED" && isExpired
+    const expiresAt = credential.expiresAt;
+    const isExpired = !!expiresAt && expiresAt.getTime() <= now.getTime();
+
+    const status =
+      credential.status === CredentialStatus.VERIFIED && isExpired
         ? "EXPIRED"
         : credential.status;
 
+    const valid =
+      credential.status === CredentialStatus.VERIFIED &&
+      !isExpired;
+
     const response: CredentialStatusResponse = {
       exists: true,
-      status: derivedStatus,
-      expiresAt: credential.expiresAt?.toISOString() ?? null,
+      status,
+      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      valid,
     };
 
     return NextResponse.json(response);

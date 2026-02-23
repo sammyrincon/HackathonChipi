@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2, UploadCloud, Check } from "lucide-react";
 import Link from "next/link";
 import type { KycCredentialResponse } from "@/app/api/kyc/route";
+import { formatWalletAddress } from "@/lib/utils";
 
 type Stage = "upload" | "payment" | "issued";
 
@@ -91,27 +92,126 @@ export function KycForm() {
   const [credential, setCredential] = useState<KycCredentialResponse | null>(null);
   const [simulating, setSimulating] = useState(false);
 
-  // Restore stage from sessionStorage after mount (so post-reload we land on payment)
   useEffect(() => {
     const saved = sessionStorage.getItem(KYC_STAGE_KEY);
     if (saved === "upload" || saved === "payment" || saved === "issued") setStage(saved);
   }, []);
-  // Persist stage whenever it changes
+
   useEffect(() => {
     sessionStorage.setItem(KYC_STAGE_KEY, stage);
   }, [stage]);
 
   const demoMode =
-    typeof process.env.NEXT_PUBLIC_DEMO_MODE !== "undefined" &&
     process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const demoPayments =
+    process.env.NEXT_PUBLIC_DEMO_PAYMENTS === "true";
   const allowFakePayments =
-    typeof process.env.NEXT_PUBLIC_ALLOW_FAKE_PAYMENTS !== "undefined" &&
     process.env.NEXT_PUBLIC_ALLOW_FAKE_PAYMENTS === "true";
 
-  const walletAddress =
+  const chipiWalletAddress =
     walletResponse?.normalizedPublicKey ?? walletResponse?.publicKey ?? "";
 
+  const [demoWalletAddress, setDemoWalletAddress] = useState<string | null>(null);
+
+  const walletAddress = chipiWalletAddress || demoWalletAddress || "";
+
+  const isDemoPaymentFlow = demoMode || demoPayments;
+  const preparingDemoWallet =
+    stage === "payment" && isDemoPaymentFlow && !chipiWalletAddress && !demoWalletAddress;
+
   const loadingPayment = loadingTransfer || loadingRecord;
+
+  useEffect(() => {
+    if (stage !== "payment" || !isDemoPaymentFlow || chipiWalletAddress) return;
+    if (demoWalletAddress) return;
+    const hex = Array.from({ length: 64 }, () =>
+      Math.floor(Math.random() * 16).toString(16)
+    ).join("");
+    setDemoWalletAddress("0x" + hex);
+  }, [stage, isDemoPaymentFlow, chipiWalletAddress, demoWalletAddress]);
+
+  const [pendingCredentialFetched, setPendingCredentialFetched] = useState(false);
+  useEffect(() => {
+    if (
+      stage !== "payment" ||
+      !walletAddress?.trim() ||
+      pendingCredentialFetched
+    )
+      return;
+    setPendingCredentialFetched(true);
+    const url = "/api/kyc";
+    const body: Record<string, string> = {
+      wallet: walletAddress.trim(),
+      walletAddress: walletAddress.trim(),
+    };
+    if (isDemoPaymentFlow) body.status = "PENDING";
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const resBody = await r.json().catch(() => ({})) as { error?: string };
+          console.error("[KYC PENDING] POST failed", {
+            status: r.status,
+            statusText: r.statusText,
+            url,
+            body: resBody,
+          });
+          return Promise.reject(new Error(resBody.error ?? "Failed"));
+        }
+        return r.json();
+      })
+      .then(() => {})
+      .catch((e) => {
+        console.error("[KYC PENDING]", e);
+      });
+  }, [stage, walletAddress, pendingCredentialFetched, isDemoPaymentFlow]);
+
+  async function handlePay() {
+    const effectiveWallet = walletAddress?.trim();
+    if (!effectiveWallet) {
+      toast.error("Wallet is required");
+      return;
+    }
+    console.log("[KYC handlePay] wallet used:", effectiveWallet.slice(0, 14) + "...");
+    const endpoint = "/api/kyc";
+    const demoTxHash = "0xDEMO_" + Date.now();
+    const payBody = {
+      wallet: effectiveWallet,
+      walletAddress: effectiveWallet,
+      status: "VERIFIED",
+      transactionHash: demoTxHash,
+    };
+    setSimulating(true);
+    try {
+      toast.loading("Issuing credential (demo)...", { id: "kyc-demo-pay" });
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payBody),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        const msg = data.error ?? "Credential issuance failed";
+        if ((res.status === 403 || res.status === 400) && String(msg).toLowerCase().includes("allow_demo_kyc")) {
+          toast.error("Server has demo disabled. Set ALLOW_DEMO_KYC=true in server env.", { id: "kyc-demo-pay" });
+        } else {
+          toast.error(msg, { id: "kyc-demo-pay" });
+        }
+        return;
+      }
+      toast.success("Credential issued", { id: "kyc-demo-pay" });
+      setCredential(data as KycCredentialResponse);
+      setStage("issued");
+      window.dispatchEvent(new CustomEvent("zeropass-credential-issued"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Demo payment failed", { id: "kyc-demo-pay" });
+    } finally {
+      setSimulating(false);
+    }
+  }
 
   function handleSubmitDocs(e: React.FormEvent) {
     e.preventDefault();
@@ -145,6 +245,10 @@ export function KycForm() {
         const jwtToken = await getToken();
         if (!jwtToken) throw new Error("No auth token");
 
+        if (!walletAddress?.trim()) {
+        toast.error("Wallet is required", { id: "kyc-payment" });
+        return;
+      }
         toast.loading("Sending 1 USDC…", { id: "kyc-payment" });
 
         const transactionHash = await transferAsync({
@@ -178,7 +282,11 @@ export function KycForm() {
         const res = await fetch("/api/kyc", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ walletAddress, transactionHash }),
+          body: JSON.stringify({
+            walletAddress: walletAddress.trim(),
+            wallet: walletAddress.trim(),
+            transactionHash,
+          }),
         });
 
         if (!res.ok) {
@@ -190,6 +298,7 @@ export function KycForm() {
         toast.success("Credential issued. Verify once, access anywhere.", { id: "kyc-payment" });
         setCredential(data);
         setStage("issued");
+        window.dispatchEvent(new CustomEvent("zeropass-credential-issued"));
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Payment failed", {
           id: "kyc-payment",
@@ -199,8 +308,35 @@ export function KycForm() {
     [customerWallet, walletAddress, getToken, transferAsync, recordSendTransactionAsync]
   );
 
+  const showDebugPanel =
+    process.env.NODE_ENV === "development" || demoMode || demoPayments;
+
+  function summarize(addr: string | null): string {
+    if (!addr) return "(none)";
+    if (addr.length <= 18) return addr;
+    return formatWalletAddress(addr);
+  }
+
   return (
     <div className="space-y-12">
+      {showDebugPanel && (
+        <div className="rounded-none border border-[#111111] bg-[#F9F9F7] p-4 font-mono text-xs text-[#111111]/90">
+          <p className="font-semibold uppercase tracking-wider text-[#111111]">Debug</p>
+          <ul className="mt-2 space-y-1">
+            <li>demoMode: {String(demoMode)}</li>
+            <li>demoPayments: {String(demoPayments)}</li>
+            <li>allowFakePayments: {String(allowFakePayments)}</li>
+            <li>chipiWalletAddress: {summarize(chipiWalletAddress || null)}</li>
+            <li>demoWalletAddress: {summarize(demoWalletAddress)}</li>
+            <li>walletAddress (final): {summarize(walletAddress || null)}</li>
+            <li>stage: {stage}</li>
+            {stage === "payment" && (
+              <li>preparingDemoWallet: {String(preparingDemoWallet)}</li>
+            )}
+          </ul>
+        </div>
+      )}
+
       <StageIndicator stage={stage} />
 
       {/* Stage 1: KYC simulated (no real docs stored) */}
@@ -297,7 +433,7 @@ export function KycForm() {
                 <p className="font-body text-xs text-[#111111]/70">
                   Credential will be linked to:{" "}
                   <code className="font-mono-data">
-                    {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
+                    {formatWalletAddress(walletAddress)}
                   </code>
                 </p>
               )}
@@ -342,76 +478,49 @@ export function KycForm() {
               </div>
             </div>
 
-            {demoMode ? (
-              walletAddress ? (
-                <Button
-                  type="button"
-                  disabled={simulating}
-                  className="w-full"
-                  onClick={async () => {
-                    const demoTxHash = "0xDEMO_" + Date.now();
-                    setSimulating(true);
-                    try {
-                      toast.loading("Issuing credential (demo)...", { id: "kyc-demo" });
-                      const res = await fetch("/api/kyc", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          walletAddress,
-                          transactionHash: demoTxHash,
-                        }),
-                      });
-                      if (!res.ok) {
-                        const data = (await res.json().catch(() => ({}))) as { error?: string };
-                        throw new Error(data.error ?? "Credential issuance failed");
-                      }
-                      const data = (await res.json()) as KycCredentialResponse;
-                      toast.success("Credential issued ✅", { id: "kyc-demo" });
-                      setCredential(data);
-                      setStage("issued");
-                    } catch (err) {
-                      toast.error(err instanceof Error ? err.message : "Demo failed", {
-                        id: "kyc-demo",
-                      });
-                    } finally {
-                      setSimulating(false);
-                    }
-                  }}
-                >
-                  {simulating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Issuing...
-                    </>
-                  ) : (
-                    "Complete KYC (Demo)"
-                  )}
-                </Button>
-              ) : (
-                <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-3">
-                  <p className="font-body text-sm text-[#111111]">
-                    No Chipi wallet found. Create one to continue.
+            {isDemoPaymentFlow ? (
+              <>
+                {preparingDemoWallet ? (
+                  <p className="font-body text-sm text-[#111111]/70">
+                    Preparing demo wallet...
                   </p>
-                  <CreateWalletDialog
-                    onSuccess={() => {
-                      void fetch("/api/activity/log", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ type: "wallet_created" }),
-                      });
-                      sessionStorage.setItem(KYC_STAGE_KEY, "payment");
-                      toast.success("Wallet created! Reloading…");
-                      setTimeout(() => window.location.reload(), 100);
-                    }}
-                  />
-                </div>
-              )
+                ) : (
+                  <>
+                    {walletAddress ? (
+                      <p className="font-body text-xs text-[#111111]/70">
+                        Paying from:{" "}
+                        <code className="font-mono-data">
+                          {formatWalletAddress(walletAddress)}
+                        </code>
+                        {!chipiWalletAddress && (
+                          <span className="ml-1 text-[#111111]/50">(demo wallet)</span>
+                        )}
+                      </p>
+                    ) : null}
+                    <Button
+                      type="button"
+                      disabled={simulating || !walletAddress?.trim()}
+                      className="w-full"
+                      onClick={handlePay}
+                    >
+                      {simulating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Issuing...
+                        </>
+                      ) : (
+                        "Pay 1 USDC"
+                      )}
+                    </Button>
+                  </>
+                )}
+              </>
             ) : walletAddress ? (
               <>
                 <p className="font-body text-xs text-[#111111]/70">
                   Paying from:{" "}
                   <code className="font-mono-data">
-                    {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
+                    {formatWalletAddress(walletAddress)}
                   </code>
                 </p>
 
@@ -439,12 +548,18 @@ export function KycForm() {
                     onClick={async () => {
                       setSimulating(true);
                       try {
+                        if (!walletAddress?.trim()) {
+                          toast.error("Wallet is required", { id: "kyc-sim" });
+                          setSimulating(false);
+                          return;
+                        }
                         toast.loading("Simulating payment...", { id: "kyc-sim" });
                         const res = await fetch("/api/kyc", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            walletAddress,
+                            walletAddress: walletAddress.trim(),
+                            wallet: walletAddress.trim(),
                             transactionHash: "0xsim",
                           }),
                         });
@@ -456,6 +571,7 @@ export function KycForm() {
                         toast.success("Credential issued (simulated)", { id: "kyc-sim" });
                         setCredential(data);
                         setStage("issued");
+                        window.dispatchEvent(new CustomEvent("zeropass-credential-issued"));
                       } catch (err) {
                         toast.error(err instanceof Error ? err.message : "Simulation failed", {
                           id: "kyc-sim",
@@ -480,6 +596,9 @@ export function KycForm() {
               <div className="border border-[#111111] bg-[#F9F9F7] p-6 space-y-3">
                 <p className="font-body text-sm text-[#111111]">
                   No Chipi wallet found. Create one to continue with payment.
+                </p>
+                <p className="font-body text-xs text-[#111111]/60">
+                  (Demo payments are off. Set NEXT_PUBLIC_DEMO_PAYMENTS=true to use demo flow.)
                 </p>
                 <CreateWalletDialog
                   onSuccess={() => {
@@ -515,7 +634,7 @@ export function KycForm() {
           <CardHeader className="p-0 pb-6">
             <CardTitle className="font-headline flex items-center gap-2 text-[#CC0000]">
               <ShieldCheck className="h-5 w-5" />
-              Credential issued ✅
+              Credential issued
             </CardTitle>
             <CardDescription className="font-body text-[#111111]/70">
               {credential.message}
@@ -533,7 +652,7 @@ export function KycForm() {
                 <p className="text-[#111111]">
                   <span className="text-[#111111]/70">Linked wallet: </span>
                   <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
-                    {credential.walletAddress.slice(0, 10)}...{credential.walletAddress.slice(-8)}
+                    {formatWalletAddress(credential.walletAddress)}
                   </code>
                 </p>
               )}
@@ -541,7 +660,7 @@ export function KycForm() {
                 <p className="text-[#111111]">
                   <span className="text-[#111111]/70">Payment tx: </span>
                   <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
-                    {credential.transactionHash.slice(0, 12)}...{credential.transactionHash.slice(-8)}
+                    {formatWalletAddress(credential.transactionHash, 12, 8)}
                   </code>
                 </p>
               )}

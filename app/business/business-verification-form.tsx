@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldX, QrCode, Loader2, X } from "lucide-react";
+import { formatWalletAddress } from "@/lib/utils";
 
 type VerificationResult = {
   verified: boolean;
@@ -15,11 +16,23 @@ type VerificationResult = {
   message: string;
 };
 
+type ProofVerifyResponse = {
+  valid: boolean;
+  reason?: string;
+  credentialId?: string;
+  walletAddress?: string;
+  expiresAt?: string | null;
+  publicSignals?: { issuer?: string; commitment?: string };
+  scheme?: string;
+};
+
 export function BusinessVerificationForm() {
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [proofResult, setProofResult] = useState<ProofVerifyResponse | null>(null);
+  const [proofLoading, setProofLoading] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   const scannerInstanceRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
@@ -28,7 +41,7 @@ export function BusinessVerificationForm() {
       try {
         await scannerInstanceRef.current.stop();
       } catch {
-        // already stopped
+        // stop() throws if scanner is not running — safe to ignore
       }
       scannerInstanceRef.current = null;
     }
@@ -46,7 +59,19 @@ export function BusinessVerificationForm() {
         async (decodedText) => {
           await stopScanner();
           setScannerOpen(false);
-          const address = decodedText.trim();
+          const raw = decodedText.trim();
+          if (raw.startsWith("zp://")) {
+            toast.success("QR scanned — verifying proof...");
+            await verifyProofPayload(raw);
+            return;
+          }
+          let address = raw;
+          try {
+            const parsed = JSON.parse(raw) as { walletAddress?: string };
+            if (parsed.walletAddress) address = parsed.walletAddress;
+          } catch {
+            // use raw as address
+          }
           setWalletAddress(address);
           toast.success("QR scanned — verifying...");
           await verifyAddress(address);
@@ -69,6 +94,28 @@ export function BusinessVerificationForm() {
       stopScanner();
     };
   }, [scannerOpen, startScanner, stopScanner]);
+
+  async function verifyProofPayload(payload: string) {
+    setProofLoading(true);
+    setProofResult(null);
+    setResult(null);
+    try {
+      const res = await fetch("/api/proof/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload }),
+      });
+      const data = (await res.json().catch(() => ({}))) as ProofVerifyResponse & { error?: string };
+      setProofResult(data);
+      if (data.valid) toast.success("Proof valid — credential verified");
+      else toast.error(data.reason ?? "Proof invalid");
+    } catch {
+      toast.error("Verification request failed");
+      setProofResult({ valid: false, reason: "REQUEST_FAILED" });
+    } finally {
+      setProofLoading(false);
+    }
+  }
 
   async function verifyAddress(address: string) {
     if (!address) {
@@ -187,6 +234,64 @@ export function BusinessVerificationForm() {
         </CardContent>
       </Card>
 
+      {proofLoading && (
+        <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
+          <CardContent className="flex items-center gap-2 font-body text-[#111111]/70">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Verifying proof...</span>
+          </CardContent>
+        </Card>
+      )}
+
+      {proofResult && (
+        <Card
+          className={
+            proofResult.valid
+              ? "border-2 border-[#CC0000] bg-[#F9F9F7] p-8"
+              : "border border-[#111111] bg-[#F9F9F7] p-8"
+          }
+        >
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2 text-[#111111]">
+              {proofResult.valid ? (
+                <>
+                  <ShieldCheck className="h-5 w-5 text-[#CC0000]" />
+                  <span className="text-[#CC0000]">Verified</span>
+                </>
+              ) : (
+                <>
+                  <ShieldX className="h-5 w-5 text-[#111111]/70" />
+                  Proof invalid
+                </>
+              )}
+            </CardTitle>
+            <CardDescription className="font-body text-[#111111]/70">
+              {proofResult.valid
+                ? "Credential and proof match."
+                : proofResult.reason ?? "Verification failed."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 font-body text-sm">
+            {proofResult.valid && proofResult.walletAddress && (
+              <p className="text-[#111111]/80">
+                Wallet:{" "}
+                <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
+                  {formatWalletAddress(proofResult.walletAddress, 12, 10)}
+                </code>
+              </p>
+            )}
+            {proofResult.valid && proofResult.credentialId && (
+              <p className="text-[#111111]/80">
+                Credential:{" "}
+                <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
+                  {proofResult.credentialId}
+                </code>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {result && (
         <Card
           className={
@@ -215,7 +320,7 @@ export function BusinessVerificationForm() {
             <p className="text-[#111111]/80">
               Wallet:{" "}
               <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
-                {result.walletAddress.slice(0, 12)}...{result.walletAddress.slice(-10)}
+                {formatWalletAddress(result.walletAddress, 12, 10)}
               </code>
             </p>
             {result.credentialId && (

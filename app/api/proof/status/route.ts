@@ -2,12 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { CredentialStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { normalizeWallet } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 /**
  * GET /api/proof/status?wallet=0x...
  * Returns proof data for QR payload when DEMO_PROOFS is enabled and credential is VERIFIED.
  */
 export async function GET(request: NextRequest) {
+  const limit = checkRateLimit(request);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests", code: "RATE_LIMITED", retryAfter: limit.retryAfter },
+      {
+        status: 429,
+        headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+      }
+    );
+  }
+
   try {
     if (process.env.DEMO_PROOFS !== "true") {
       return NextResponse.json(
@@ -21,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     if (!wallet || !wallet.trim().startsWith("0x")) {
       return NextResponse.json(
-        { error: "Missing or invalid wallet query parameter" },
+        { error: "Missing or invalid wallet query parameter", code: "INVALID_WALLET" },
         { status: 400 }
       );
     }
@@ -89,7 +101,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[GET /api/proof/status]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

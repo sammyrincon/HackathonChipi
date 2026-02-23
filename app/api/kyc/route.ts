@@ -39,20 +39,20 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
     let body: unknown;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON body", code: "INVALID_BODY" }, { status: 400 });
     }
 
     const parsed = kycSubmitSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
+        { error: "Validation failed", code: "VALIDATION_FAILED", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     const allowDemoKyc = process.env.ALLOW_DEMO_KYC === "true";
     if (bodyStatus !== undefined && bodyStatus !== null && bodyStatus !== "" && !allowDemoKyc) {
       return NextResponse.json(
-        { error: "Demo KYC disabled: set ALLOW_DEMO_KYC=true on the server" },
+        { error: "Demo KYC disabled: set ALLOW_DEMO_KYC=true on the server", code: "DEMO_DISABLED" },
         { status: 403 }
       );
     }
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("CREATE CREDENTIAL ERROR:", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

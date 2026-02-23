@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       {
         verified: false,
         error: "Too many requests",
+        code: "RATE_LIMITED",
         retryAfter: limit.retryAfter,
       },
       {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       body = await request.json();
     } catch {
       return NextResponse.json(
-        { verified: false, error: "Invalid JSON body" },
+        { verified: false, error: "Invalid JSON body", code: "INVALID_BODY" },
         { status: 400 }
       );
     }
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         {
           verified: false,
           error: "Validation failed",
+          code: "VALIDATION_FAILED",
           reason: parsed.error.flatten().formErrors?.[0],
         },
         { status: 400 }
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("[POST /api/kyc/verify]", err);
     return NextResponse.json(
-      { verified: false, error: "Internal server error" },
+      { verified: false, error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

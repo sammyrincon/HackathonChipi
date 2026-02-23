@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
+/**
+ * GET /api/kyc/status (auth required)
+ *
+ * Returns the current user's credential by Clerk userId (one credential per user).
+ * For querying by wallet address (e.g. dashboard, verify flow), use
+ * GET /api/credential/status?wallet=0x... instead.
+ *
+ * This endpoint is kept for internal use (e.g. server-side checks by userId).
+ * The main UI uses useCredentialStatus → /api/credential/status.
+ */
 export type KycStatusResponse = {
   hasCredential: boolean;
   credentialId: string | null;
@@ -15,7 +25,7 @@ export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
     const credential = await prisma.credential.findUnique({
@@ -55,7 +65,7 @@ export async function GET() {
   } catch (err) {
     console.error("[GET /api/kyc/status]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

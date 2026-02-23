@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import {
+  useGetWallet,
+  useChipiWallet,
+  useMigrateWalletToPasskey,
+} from "@chipi-stack/nextjs";
+import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock, Fingerprint, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCredentialStatus, type CredentialStatusState } from "@/lib/hooks/use-credential-status";
 import { formatWalletAddress } from "@/lib/utils";
+import { WalletPinDialog } from "@/components/wallet-pin-dialog";
+import { toast } from "sonner";
 
 type CredentialStatusPanelProps = {
   walletAddress: string | null;
@@ -18,12 +27,14 @@ function StatusContent({
   onRevoke,
   showRevoke,
   revoking,
+  passkeySection,
 }: {
   state: CredentialStatusState;
   walletAddress: string | null;
   onRevoke?: () => Promise<void>;
   showRevoke?: boolean;
   revoking?: boolean;
+  passkeySection?: React.ReactNode;
 }) {
   switch (state.kind) {
     case "loading":
@@ -84,6 +95,7 @@ function StatusContent({
               {revoking ? "Revoking…" : "Revoke credential"}
             </Button>
           )}
+          {passkeySection}
         </div>
       );
 
@@ -101,6 +113,24 @@ function StatusContent({
           </p>
           <Button asChild className="mt-2">
             <Link href="/kyc" prefetch={false}>Get Verified</Link>
+          </Button>
+        </div>
+      );
+
+    case "revoked":
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 font-body text-[#111111]/80">
+            <Ban className="h-10 w-10 shrink-0 text-[#CC0000]" />
+            <h2 className="font-headline text-xl font-bold uppercase text-[#111111]">
+              Credential revoked
+            </h2>
+          </div>
+          <p className="font-body text-sm text-[#111111]/80">
+            This credential is no longer valid. Complete KYC again to get a new ZeroPass credential.
+          </p>
+          <Button asChild className="mt-2">
+            <Link href="/kyc" prefetch={false}>Get verified again</Link>
           </Button>
         </div>
       );
@@ -149,10 +179,93 @@ function StatusContent({
   }
 }
 
+function PasskeyUpgrade() {
+  const { getToken, userId: clerkUserId } = useAuth();
+  const { data: walletResponse } = useGetWallet({ getBearerToken: getToken });
+  const { wallet: chipiWallet } = useChipiWallet({
+    externalUserId: clerkUserId ?? null,
+    getBearerToken: getToken,
+  });
+  const { migrateWalletToPasskeyAsync, isLoading: migrating, isSuccess } =
+    useMigrateWalletToPasskey();
+
+  const [pinOpen, setPinOpen] = useState(false);
+
+  const hasWallet = !!(walletResponse?.publicKey);
+  const walletType = (walletResponse as { walletType?: string } | undefined)?.walletType ?? "";
+  const alreadyPasskey = walletType.toLowerCase() === "passkey";
+
+  if (!hasWallet || alreadyPasskey || isSuccess) return null;
+
+  async function handleMigrate(pin: string) {
+    if (!chipiWallet || !clerkUserId) {
+      toast.error("Wallet not found");
+      return;
+    }
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+
+      toast.loading("Setting up biometric auth...", { id: "passkey-migrate" });
+      await migrateWalletToPasskeyAsync({
+        oldEncryptKey: pin,
+        externalUserId: clerkUserId,
+        wallet: chipiWallet,
+        bearerToken: token,
+      });
+      toast.success("Biometric auth enabled", { id: "passkey-migrate" });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Passkey migration failed",
+        { id: "passkey-migrate" }
+      );
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-3 border-t border-[#111111]/20 pt-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2 rounded-none border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-white"
+          onClick={() => setPinOpen(true)}
+          disabled={migrating}
+        >
+          {migrating ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Upgrading...
+            </>
+          ) : (
+            <>
+              <Fingerprint className="h-4 w-4" />
+              Upgrade to biometric auth
+            </>
+          )}
+        </Button>
+        <p className="mt-1 font-body text-[10px] text-[#111111]/50 uppercase tracking-wider">
+          Replace your PIN with fingerprint or Face ID
+        </p>
+      </div>
+      <WalletPinDialog
+        open={pinOpen}
+        onCancel={() => setPinOpen(false)}
+        onSubmit={(pin) => {
+          setPinOpen(false);
+          void handleMigrate(pin);
+        }}
+      />
+    </>
+  );
+}
+
 export function CredentialStatusPanel({
   walletAddress,
   showRevoke = true,
 }: CredentialStatusPanelProps) {
+  const router = useRouter();
   const { state, loading, refetch } = useCredentialStatus(walletAddress);
   const [revoking, setRevoking] = useState(false);
 
@@ -160,12 +273,21 @@ export function CredentialStatusPanel({
     setRevoking(true);
     try {
       const res = await fetch("/api/kyc/revoke", { method: "POST" });
-      if (!res.ok) throw new Error("Revoke failed");
+      const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+      if (!res.ok) {
+        toast.error(body.error ?? "Revoke failed");
+        return;
+      }
+      toast.success(body.message ?? "Credential revoked");
       await refetch();
+      sessionStorage.removeItem("kyc-form-stage");
+      router.refresh();
     } finally {
       setRevoking(false);
     }
   }
+
+  const passkeySection = state.kind === "verified" ? <PasskeyUpgrade /> : null;
 
   return (
     <div className="relative z-10 space-y-2">
@@ -175,6 +297,7 @@ export function CredentialStatusPanel({
         onRevoke={handleRevoke}
         showRevoke={showRevoke && state.kind === "verified"}
         revoking={revoking}
+        passkeySection={passkeySection}
       />
       {state.kind === "error" && (
         <Button

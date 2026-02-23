@@ -133,17 +133,12 @@ export async function POST(request: NextRequest) {
       },
       update: {
         walletAddress,
-        ...(existing?.status === CredentialStatus.REVOKED
-          ? {}
-          : {
-              status: statusEnum,
-              transactionHash: txHash ?? undefined,
-              ...(status === "VERIFIED" &&
-              issuedAt != null &&
-              finalExpiresAt != null
-                ? { issuedAt, expiresAt: finalExpiresAt }
-                : {}),
-            }),
+        credentialId,
+        status: statusEnum,
+        transactionHash: txHash ?? null,
+        ...(status === "VERIFIED" && issuedAt && finalExpiresAt
+          ? { issuedAt, expiresAt: finalExpiresAt }
+          : {}),
       },
     });
 

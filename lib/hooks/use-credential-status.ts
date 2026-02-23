@@ -13,6 +13,7 @@ export type CredentialStatusState =
   | { kind: "pending"; data: CredentialStatusData }
   | { kind: "verified"; data: CredentialStatusData }
   | { kind: "expired"; data: CredentialStatusData }
+  | { kind: "revoked"; data: CredentialStatusData }
   | { kind: "error"; message: string }
   | { kind: "idle"; data: CredentialStatusData | null };
 
@@ -37,6 +38,7 @@ function deriveState(
   const status = (data.status ?? "").toUpperCase();
   if (status === "VERIFIED") return { kind: "verified", data };
   if (status === "EXPIRED") return { kind: "expired", data };
+  if (status === "REVOKED") return { kind: "revoked", data };
   return { kind: "pending", data };
 }
 

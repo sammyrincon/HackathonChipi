@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { CredentialStatus } from "@prisma/client";
 import { normalizeWallet } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export type CredentialStatusResponse = {
   exists: boolean;
@@ -11,13 +12,24 @@ export type CredentialStatusResponse = {
 };
 
 export async function GET(request: NextRequest) {
+  const limit = checkRateLimit(request);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests", code: "RATE_LIMITED", retryAfter: limit.retryAfter },
+      {
+        status: 429,
+        headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+      }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const wallet = searchParams.get("wallet");
 
     if (!wallet || wallet.trim() === "") {
       return NextResponse.json(
-        { error: "Missing wallet query parameter" },
+        { error: "Missing wallet query parameter", code: "MISSING_WALLET" },
         { status: 400 }
       );
     }
@@ -64,7 +76,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("[GET /api/credential/status]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

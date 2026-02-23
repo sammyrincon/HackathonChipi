@@ -61,10 +61,14 @@ ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet
 
 ## API (Zod-validated)
 
+- `GET /api/healthz` (public) — health check; returns `{ status: "ok" }` for load balancers.
 - `POST /api/kyc` (auth) — body: `{ walletAddress, transactionHash?, kycData? }`. Upsert credential; if `verifyPayment` accepts tx (e.g. `0xDEMO_*` in demo mode), status = VERIFIED, 30-day expiry. Response: `{ ok, status, expiresAt, walletAddress, ... }`.
-- `GET /api/kyc/status` (auth) — credential for user or NONE.
-- `POST /api/kyc/revoke` (auth) — set status REVOKED, set revokedAt.
+- `GET /api/kyc/status` (auth) — credential for **current user** (by Clerk userId). Internal use; for query by wallet use `GET /api/credential/status` instead.
+- `GET /api/credential/status` (public, rate-limited) — query `?wallet=0x...`. Returns `{ exists, status, expiresAt, valid }`. Used by dashboard and verify flow.
+- `POST /api/kyc/revoke` (auth) — set credential status to REVOKED.
 - `POST /api/kyc/verify` (public, rate-limited) — body: `{ walletAddress }`. Response: `{ verified, reason?, expiresAt? }`.
+- `POST /api/proof/verify` (public, rate-limited) — body: `{ payload }` (ZeroPass `zp://verify?...`). Requires `DEMO_PROOFS=true`.
+- `GET /api/proof/status` (public, rate-limited) — query `?wallet=0x...`. Returns QR payload when `DEMO_PROOFS=true`.
 
 ## Scripts
 

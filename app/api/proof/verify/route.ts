@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CredentialStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { normalizeWallet } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 /**
  * Parse ZeroPass payload string: zp://verify?wallet=0x...&cred=<credentialId>&commitment=0x...
@@ -24,6 +25,17 @@ function parsePayload(payload: string): {
 }
 
 export async function POST(request: NextRequest) {
+  const limit = checkRateLimit(request);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { valid: false, reason: "RATE_LIMITED", error: "Too many requests", retryAfter: limit.retryAfter },
+      {
+        status: 429,
+        headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+      }
+    );
+  }
+
   try {
     if (process.env.DEMO_PROOFS !== "true") {
       return NextResponse.json({
@@ -37,7 +49,7 @@ export async function POST(request: NextRequest) {
       body = await request.json();
     } catch {
       return NextResponse.json(
-        { error: "Invalid JSON body" },
+        { error: "Invalid JSON body", code: "INVALID_BODY" },
         { status: 400 }
       );
     }
@@ -45,7 +57,7 @@ export async function POST(request: NextRequest) {
     const payload = body.payload;
     if (typeof payload !== "string" || !payload.trim()) {
       return NextResponse.json(
-        { error: "Missing payload" },
+        { error: "Missing payload", code: "MISSING_PAYLOAD" },
         { status: 400 }
       );
     }
@@ -124,7 +136,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("[POST /api/proof/verify]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
       { status: 500 }
     );
   }

@@ -5,6 +5,7 @@ import { ChipiProvider } from "@chipi-stack/nextjs";
 import { Toaster } from "sonner";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
+import { ActivityLogger } from "@/components/activity-logger";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -40,7 +41,10 @@ export default function RootLayout({children}: {
       <ChipiProvider>
         <html lang="en" suppressHydrationWarning>
           <body className={`${playfair.variable} ${lora.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-            {children}
+            <div className="mx-auto max-w-4xl px-8">
+              {children}
+            </div>
+            <ActivityLogger />
             <Toaster />
             {process.env.NODE_ENV === "development" && (
               <ReactQueryDevtools initialIsOpen={false} />

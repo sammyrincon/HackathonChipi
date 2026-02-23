@@ -3,7 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { kycSubmitSchema } from "@/lib/validators";
 import { verifyPayment } from "@/lib/payments";
-import { CredentialStatus } from "@prisma/client";
+
+type Status = "PENDING" | "VERIFIED" | "REVOKED" | "EXPIRED";
 
 export type KycCredentialResponse = {
   ok: boolean;
@@ -59,14 +60,14 @@ export async function POST(request: NextRequest) {
       where: { clerkUserId: userId },
     });
 
-    let status: CredentialStatus = CredentialStatus.PENDING;
+    let status: Status = "PENDING";
     let issuedAt: Date | null = null;
     let finalExpiresAt: Date | null = null;
 
     if (txHash && walletAddress) {
       const paymentOk = await verifyPayment(txHash, walletAddress);
       if (paymentOk) {
-        status = CredentialStatus.VERIFIED;
+        status = "VERIFIED";
         issuedAt = now;
         finalExpiresAt = expiresAt;
       }
@@ -80,33 +81,33 @@ export async function POST(request: NextRequest) {
         status,
         credentialId,
         transactionHash: txHash ?? null,
-        issuedAt: status === CredentialStatus.VERIFIED ? issuedAt : null,
-        expiresAt: status === CredentialStatus.VERIFIED ? finalExpiresAt : null,
+        issuedAt: status === "VERIFIED" && issuedAt ? issuedAt : now,
+        expiresAt: status === "VERIFIED" && finalExpiresAt ? finalExpiresAt : expiresAt,
       },
       update: {
         walletAddress,
-        ...(existing?.status === CredentialStatus.REVOKED
+        ...(existing?.status === "REVOKED"
           ? {}
           : {
               status,
               transactionHash: txHash ?? undefined,
-              issuedAt: status === CredentialStatus.VERIFIED ? issuedAt : undefined,
-              expiresAt: status === CredentialStatus.VERIFIED ? finalExpiresAt : undefined,
-              lastVerifiedAt: status === CredentialStatus.VERIFIED ? now : undefined,
+              ...(status === "VERIFIED" && issuedAt != null && finalExpiresAt != null
+                ? { issuedAt, expiresAt: finalExpiresAt }
+                : {}),
             }),
       },
     });
 
     const response: KycCredentialResponse = {
-      ok: credential.status === CredentialStatus.VERIFIED,
+      ok: credential.status === "VERIFIED",
       credentialId: credential.credentialId,
-      status: credential.status,
+      status: credential.status as KycCredentialResponse["status"],
       walletAddress: credential.walletAddress,
       transactionHash: credential.transactionHash,
       issuedAt: credential.issuedAt?.toISOString() ?? null,
       expiresAt: credential.expiresAt?.toISOString() ?? null,
       message:
-        credential.status === CredentialStatus.VERIFIED
+        credential.status === "VERIFIED"
           ? "ZeroPass credential issued. Verify once, access anywhere."
           : "Credential created. Complete payment to activate.",
     };

@@ -30,14 +30,14 @@ export function DashboardWalletHitCounter({
 
   if (!hasWallet) {
     return (
-      <div className="w-full max-w-sm border-4 border-[#111111] bg-[#111111] p-6">
-        <p className="font-mono-data text-xs uppercase tracking-widest text-[#4ade80]/80">
-          USDC balance
+      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-8 text-center">
+        <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
+          Wallet balance
         </p>
-        <p className="mt-1 font-mono-data text-2xl font-bold tabular-nums text-[#4ade80]/80">
-          $—
+        <p className="mt-2 font-mono-data text-2xl font-bold tabular-nums text-[#4ade80]/80">
+          $0.00
         </p>
-        <p className="mt-3 font-body text-xs text-white/70">
+        <p className="mt-4 font-body text-xs text-white/70">
           No wallet. Create one from the home page to link your ZeroPass credential.
         </p>
       </div>
@@ -45,17 +45,17 @@ export function DashboardWalletHitCounter({
   }
 
   return (
-    <div className="w-full max-w-sm border-4 border-[#111111] bg-[#111111] p-6">
+    <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-8 text-center">
       <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
-        USDC balance
+        Wallet balance
       </p>
-      <div className="mt-1">
+      <div className="mt-2">
         <UsdcBalance
           walletPublicKey={walletPublicKey}
           className="text-2xl font-bold text-[#4ade80] md:text-3xl"
         />
       </div>
-      <div className="mt-3 border-t border-white/20 pt-3">
+      <div className="mt-4 border-t border-white/20 pt-4">
         <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
           Wallet address
         </p>

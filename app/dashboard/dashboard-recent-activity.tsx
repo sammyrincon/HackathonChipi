@@ -32,7 +32,7 @@ export function DashboardRecentActivity() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/kyc/status")
+    fetch("/api/kyc/status", { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<KycStatusResponse>;
@@ -94,17 +94,25 @@ export function DashboardRecentActivity() {
     );
   }
 
+  const dotColor =
+    (event: string) =>
+    (event === "Credential issued"
+      ? "bg-[#22c55e]"
+      : event === "Wallet linked"
+        ? "bg-[#3b82f6]"
+        : "bg-[#a3a3a3]");
+
   return (
     <table className="w-full border-collapse border border-[#111111]">
       <thead>
-        <tr className="border-b border-[#111111] bg-[#F9F9F7]">
-          <th className="border-r border-[#111111] px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#111111]">
+        <tr className="border-b border-[#111111] bg-[#111111] text-[#4ade80]">
+          <th className="border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
             Event
           </th>
-          <th className="border-r border-[#111111] px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#111111]">
+          <th className="border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
             Detail
           </th>
-          <th className="px-4 py-3 text-right font-headline text-xs font-semibold uppercase tracking-widest text-[#111111]">
+          <th className="px-4 py-3 text-right font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
             Time
           </th>
         </tr>
@@ -113,14 +121,16 @@ export function DashboardRecentActivity() {
         {rows.map((row, i) => (
           <tr
             key={row.id}
-            className={
-              i % 2 === 0
-                ? "bg-[#F5F5F5]"
-                : "bg-[#F9F9F7]"
-            }
+            className={`${i % 2 === 0 ? "bg-[#F5F5F5]" : "bg-[#F9F9F7]"} hover:bg-[#E5E5E0]`}
           >
             <td className="border-r border-b border-[#111111] px-4 py-3 font-body text-sm text-[#111111]">
-              {row.event}
+              <span className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${dotColor(row.event)}`}
+                  aria-hidden
+                />
+                {row.event}
+              </span>
             </td>
             <td className="border-r border-b border-[#111111] px-4 py-3 font-body text-sm text-[#111111]/80">
               {row.detail}

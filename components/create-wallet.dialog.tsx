@@ -76,9 +76,10 @@ export function CreateWalletDialog({
         },
         bearerToken: token,
       });
+      // Call onSuccess first (e.g. persist stage + reload) so it runs before dialog closes
+      onSuccess?.();
       form.reset();
       setOpen(false);
-      onSuccess?.();
     } catch (error) {
       toast.error("Failed to create wallet");
       console.error("Wallet creation error:", error);

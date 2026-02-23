@@ -94,10 +94,7 @@ export function BuySkuDialog({
     },
   });
 
-  console.log("form errors", form.formState.errors);
-
-  const onSubmit = (data: FormValues) => {
-    console.log("Form validated data:", data);
+  const onSubmit = (_data: FormValues) => {
     setShowPin(true);
   };
 

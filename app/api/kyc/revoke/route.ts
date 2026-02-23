@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
-import { CredentialStatus } from "@prisma/client";
 
 export type RevokeResponse = {
   ok: boolean;
-  status: CredentialStatus;
+  status: string;
   message: string;
 };
 
@@ -27,26 +26,24 @@ export async function POST() {
       );
     }
 
-    if (credential.status === CredentialStatus.REVOKED) {
+    if (credential.status === "REVOKED") {
       return NextResponse.json({
         ok: true,
-        status: CredentialStatus.REVOKED,
+        status: "REVOKED",
         message: "Credential was already revoked.",
       });
     }
 
-    const now = new Date();
     await prisma.credential.update({
       where: { clerkUserId: userId },
       data: {
-        status: CredentialStatus.REVOKED,
-        revokedAt: now,
+        status: "REVOKED",
       },
     });
 
     const response: RevokeResponse = {
       ok: true,
-      status: CredentialStatus.REVOKED,
+      status: "REVOKED",
       message: "Credential revoked successfully.",
     };
 

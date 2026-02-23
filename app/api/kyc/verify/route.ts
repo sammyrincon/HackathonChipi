@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifySchema } from "@/lib/validators";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { normalizeWallet } from "@/lib/utils";
 
 export type VerifyResponse = {
   verified: boolean;
@@ -54,29 +55,28 @@ export async function POST(request: NextRequest) {
     }
 
     const { walletAddress } = parsed.data;
-    const walletLower = walletAddress.toLowerCase();
+    const walletLower = normalizeWallet(walletAddress);
     const now = new Date();
 
     const credential = await prisma.credential.findFirst({
       where: {
-        walletAddress: { equals: walletLower, mode: "insensitive" },
-        status: "verified",
+        walletAddress: walletLower,
+        status: "VERIFIED",
         expiresAt: { gt: now },
       },
       orderBy: { expiresAt: "desc" },
     });
 
-    const verified = !!credential;
+    const valid = !!credential;
 
-    const response: VerifyResponse = {
-      verified,
-      walletAddress,
+    const response = {
+      valid,
+      verified: valid,
+      walletAddress: walletLower,
       credentialId: credential?.credentialId ?? null,
-      expiresAt: credential?.expiresAt?.toISOString(),
-      reason: verified
-        ? undefined
-        : "No valid credential found for this wallet address.",
-      message: verified
+      expiresAt: credential?.expiresAt?.toISOString() ?? undefined,
+      reason: valid ? undefined : "No valid credential found for this wallet address.",
+      message: valid
         ? "ZeroPass credential verified. Verify once, access anywhere."
         : "No valid credential found for this wallet address.",
     };

@@ -37,8 +37,6 @@ function deriveState(
   const status = (data.status ?? "").toUpperCase();
   if (status === "VERIFIED") return { kind: "verified", data };
   if (status === "EXPIRED") return { kind: "expired", data };
-  if (status === "PENDING" || status === "REVOKED")
-    return { kind: "pending", data };
   return { kind: "pending", data };
 }
 
@@ -105,6 +103,13 @@ export function useCredentialStatus(
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [wallet, refetch]);
+
+  useEffect(() => {
+    const onCredentialIssued = () => void refetch();
+    window.addEventListener("zeropass-credential-issued", onCredentialIssued);
+    return () =>
+      window.removeEventListener("zeropass-credential-issued", onCredentialIssued);
+  }, [refetch]);
 
   const state = deriveState(data, loading, error);
 

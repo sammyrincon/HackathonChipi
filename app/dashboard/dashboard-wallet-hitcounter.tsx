@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CopyIcon } from "lucide-react";
 import { UsdcBalance } from "@/components/usdc-balance";
 import { Button } from "@/components/ui/button";
+import { formatWalletAddress } from "@/lib/utils";
 
 export function DashboardWalletHitCounter({
   hasWallet,
@@ -15,7 +16,7 @@ export function DashboardWalletHitCounter({
   walletPublicKey: string;
 }) {
   const shortWallet = normalizedPublicKey
-    ? `${normalizedPublicKey.slice(0, 6)}...${normalizedPublicKey.slice(-4)}`
+    ? formatWalletAddress(normalizedPublicKey, 6, 4)
     : "";
 
   const copyFullWallet = async () => {

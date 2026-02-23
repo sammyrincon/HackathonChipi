@@ -15,7 +15,11 @@ export const txHashSchema = z
   .min(1, "Transaction hash required")
   .regex(TX_HASH_REGEX, "Invalid transaction hash");
 
+const credentialStatusSchema = z.enum(["PENDING", "VERIFIED", "REVOKED", "EXPIRED"]);
+
 export const kycSubmitSchema = z.object({
+  /** Wallet address (preferred key for API) */
+  wallet: z.string().trim().min(0).max(128).optional(),
   walletAddress: z.string().trim().min(0).max(128).optional(),
   /** Real tx hash, "0xsim" for dev, or "0xDEMO_*" for demo mode (no RPC) */
   transactionHash: z
@@ -25,6 +29,8 @@ export const kycSubmitSchema = z.object({
       z.string().trim().regex(/^0xDEMO_\d+$/, "Invalid demo tx hash"),
     ])
     .optional(),
+  /** Optional status for demo; if VERIFIED, backend sets issuedAt/expiresAt */
+  status: credentialStatusSchema.optional(),
   /** Simulated KYC payload (demo only, not stored as real docs) */
   kycData: z
     .object({

@@ -6,16 +6,23 @@ datasource db {
   provider = "postgresql"
 }
 
+enum CredentialStatus {
+  PENDING
+  VERIFIED
+  REVOKED
+  EXPIRED
+}
+
 model Credential {
-  id              String   @id @default(cuid())
-  clerkUserId     String   @unique
+  id              String           @id @default(cuid())
+  clerkUserId     String           @unique
   walletAddress   String
-  status          String   @default("verified")
-  credentialId    String   @unique
-  issuedAt        DateTime @default(now())
+  status          CredentialStatus @default(VERIFIED)
+  credentialId    String           @unique
+  issuedAt        DateTime         @default(now())
   expiresAt       DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   transactionHash String?
 }
 
@@ -27,4 +34,17 @@ model ActivityLog {
 
   @@index([clerkUserId])
   @@index([createdAt])
+}
+
+model CredentialProof {
+  id             String   @id @default(cuid())
+  credentialId   String   @unique
+  walletAddress  String
+  scheme         String   // "STUB" for now
+  proof          Json
+  publicSignals  Json
+  createdAt      DateTime @default(now())
+
+  @@index([walletAddress])
+  @@index([credentialId])
 }

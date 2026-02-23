@@ -21,9 +21,7 @@ export default function Home() {
       </header>
 
       <main>
-        {/* Hero with background image overlay */}
         <section className="relative min-h-[60vh] flex items-center border-b-4 border-[#111111] py-20">
-          {/* Background image at 10% opacity */}
           <div
             className="absolute inset-0 opacity-[0.10]"
             style={{
@@ -44,7 +42,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg" className="w-full rounded-none bg-[#111111] font-semibold uppercase tracking-wide text-white hover:bg-[#111111]/90 sm:w-auto" variant="default">
-                <Link href="/kyc">Get verified</Link>
+                <Link href="/kyc" prefetch={false}>Get verified</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="w-full rounded-none border-2 border-[#111111] font-semibold uppercase tracking-wide hover:bg-[#111111] hover:text-white sm:w-auto">
                 <Link href="/business">Verify a credential</Link>
@@ -57,7 +55,6 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          {/* Ticker / marquee */}
           <div className="mt-8 overflow-hidden border-t-2 border-[#111111] bg-[#111111] py-3">
             <div className="flex w-max animate-ticker-scroll items-center gap-8 whitespace-nowrap font-mono-data text-sm font-medium uppercase tracking-widest text-white">
               <span>VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · </span>
@@ -66,7 +63,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How it works */}
         <section className="how-it-works-bg border-t-4 border-b-4 border-[#CC0000] py-12 text-white">
           <div>
             <h2 className="font-headline mb-8 text-3xl font-bold uppercase tracking-tight text-white md:text-4xl">

@@ -1,25 +1,39 @@
--- CreateEnum
-CREATE TYPE "CredentialStatus" AS ENUM ('PENDING', 'VERIFIED', 'REVOKED', 'EXPIRED');
+-- 1) Create enum (idempotent)
+DO $$ BEGIN
+  CREATE TYPE "CredentialStatus" AS ENUM ('PENDING', 'VERIFIED', 'REVOKED', 'EXPIRED');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
--- AlterTable: add new columns
-ALTER TABLE "Credential" ADD COLUMN "revokedAt" TIMESTAMP(3);
-ALTER TABLE "Credential" ADD COLUMN "lastVerifiedAt" TIMESTAMP(3);
+-- 2) Add new columns (idempotent)
+ALTER TABLE "Credential" ADD COLUMN IF NOT EXISTS "revokedAt" TIMESTAMP(3);
+ALTER TABLE "Credential" ADD COLUMN IF NOT EXISTS "lastVerifiedAt" TIMESTAMP(3);
 
--- Make issuedAt and expiresAt nullable for PENDING credentials
+-- 3) Make issuedAt/expiresAt nullable (as your comment says)
 ALTER TABLE "Credential" ALTER COLUMN "issuedAt" DROP NOT NULL;
 ALTER TABLE "Credential" ALTER COLUMN "issuedAt" DROP DEFAULT;
 ALTER TABLE "Credential" ALTER COLUMN "expiresAt" DROP NOT NULL;
 
--- Change status from TEXT to enum (map existing 'verified' to VERIFIED)
-ALTER TABLE "Credential" ALTER COLUMN "status" TYPE "CredentialStatus" USING (
-  CASE
-    WHEN "status" = 'verified' THEN 'VERIFIED'::"CredentialStatus"
-    WHEN "status" = 'PENDING' THEN 'PENDING'::"CredentialStatus"
-    WHEN "status" = 'REVOKED' THEN 'REVOKED'::"CredentialStatus"
-    WHEN "status" = 'EXPIRED' THEN 'EXPIRED'::"CredentialStatus"
-    ELSE 'PENDING'::"CredentialStatus"
-  END
-);
+-- 4) Migrate status TEXT -> ENUM using a NEW column (this avoids the default cast error)
+ALTER TABLE "Credential"
+  ADD COLUMN IF NOT EXISTS "status_new" "CredentialStatus" NOT NULL DEFAULT 'VERIFIED';
 
--- CreateIndex
-CREATE INDEX "Credential_walletAddress_status_expiresAt_idx" ON "Credential"("walletAddress", "status", "expiresAt");
+-- Map existing text values into enum (handles any case)
+UPDATE "Credential"
+SET "status_new" =
+  CASE LOWER(COALESCE("status",''))
+    WHEN 'verified' THEN 'VERIFIED'::"CredentialStatus"
+    WHEN 'pending'  THEN 'PENDING'::"CredentialStatus"
+    WHEN 'revoked'  THEN 'REVOKED'::"CredentialStatus"
+    WHEN 'expired'  THEN 'EXPIRED'::"CredentialStatus"
+    ELSE 'PENDING'::"CredentialStatus"
+  END;
+
+-- 5) Drop old status column (text) and replace with enum column
+ALTER TABLE "Credential" DROP COLUMN IF EXISTS "status";
+ALTER TABLE "Credential" RENAME COLUMN "status_new" TO "status";
+
+-- 6) Recreate index (drop if it exists first to be safe)
+DROP INDEX IF EXISTS "Credential_walletAddress_status_expiresAt_idx";
+CREATE INDEX "Credential_walletAddress_status_expiresAt_idx"
+  ON "Credential"("walletAddress", "status", "expiresAt");

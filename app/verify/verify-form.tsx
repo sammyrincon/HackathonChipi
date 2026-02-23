@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldX, QrCode, Loader2, X, ClipboardPaste } from "lucide-react";
+import { formatWalletAddress } from "@/lib/utils";
 
 type VerifyResponse = {
   verified: boolean;
@@ -23,6 +24,16 @@ type VerifyResponse = {
   message: string;
 };
 
+type ProofVerifyResponse = {
+  valid: boolean;
+  reason?: string;
+  credentialId?: string;
+  walletAddress?: string;
+  expiresAt?: string | null;
+  publicSignals?: { issuer?: string; commitment?: string };
+  scheme?: string;
+};
+
 export function VerifyForm() {
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +41,9 @@ export function VerifyForm() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [pasteMode, setPasteMode] = useState(false);
   const [pastePayload, setPastePayload] = useState("");
+  const [proofPayload, setProofPayload] = useState("");
+  const [proofLoading, setProofLoading] = useState(false);
+  const [proofResult, setProofResult] = useState<ProofVerifyResponse | null>(null);
   const scannerRef = useRef<HTMLDivElement>(null);
   const scannerInstanceRef = useRef<{ stop: () => Promise<void> } | null>(null);
 
@@ -38,7 +52,7 @@ export function VerifyForm() {
       try {
         await scannerInstanceRef.current.stop();
       } catch {
-        // already stopped
+        // stop() throws if scanner is not running — safe to ignore
       }
       scannerInstanceRef.current = null;
     }
@@ -57,6 +71,12 @@ export function VerifyForm() {
           await stopScanner();
           setScannerOpen(false);
           const raw = decodedText.trim();
+          if (raw.startsWith("zp://")) {
+            setProofPayload(raw);
+            toast.success("QR scanned — verifying proof...");
+            await verifyProofPayload(raw);
+            return;
+          }
           let address = raw;
           try {
             const parsed = JSON.parse(raw) as { walletAddress?: string };
@@ -141,6 +161,13 @@ export function VerifyForm() {
       toast.error("Paste a JSON payload or wallet address");
       return;
     }
+    if (raw.startsWith("zp://")) {
+      setProofPayload(raw);
+      setPasteMode(false);
+      setPastePayload("");
+      verifyProofPayload(raw);
+      return;
+    }
     let address = raw;
     try {
       const parsed = JSON.parse(raw) as { walletAddress?: string };
@@ -152,6 +179,27 @@ export function VerifyForm() {
     setPasteMode(false);
     setPastePayload("");
     verifyAddress(address);
+  }
+
+  async function verifyProofPayload(payload: string) {
+    setProofLoading(true);
+    setProofResult(null);
+    try {
+      const res = await fetch("/api/proof/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload }),
+      });
+      const data = (await res.json().catch(() => ({}))) as ProofVerifyResponse & { error?: string };
+      setProofResult(data);
+      if (data.valid) toast.success("Proof valid");
+      else toast.error(data.reason ?? "Proof invalid");
+    } catch {
+      toast.error("Verification request failed");
+      setProofResult({ valid: false, reason: "REQUEST_FAILED" });
+    } finally {
+      setProofLoading(false);
+    }
   }
 
   return (
@@ -256,7 +304,7 @@ export function VerifyForm() {
               <Label htmlFor="paste">Paste JSON or wallet address</Label>
               <textarea
                 id="paste"
-                placeholder='{"walletAddress":"0x..."} or 0x...'
+                placeholder='{"walletAddress":"0x..."} or 0x... or zp://verify?...'
                 value={pastePayload}
                 onChange={(e) => setPastePayload(e.target.value)}
                 className="min-h-[80px] w-full rounded-none border border-[#111111] bg-[#F9F9F7] px-3 py-2 font-mono-data text-sm placeholder:text-[#111111]/50"
@@ -288,6 +336,94 @@ export function VerifyForm() {
         </CardContent>
       </Card>
 
+      <Card className="border border-[#111111] bg-[#F9F9F7] p-8">
+        <CardHeader>
+          <CardTitle className="font-headline text-[#111111]">
+            Verify by ZeroPass payload
+          </CardTitle>
+          <CardDescription className="font-body text-[#111111]/70">
+            Paste a ZeroPass payload (e.g. from a QR) to verify the proof.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="proof-payload">Paste ZeroPass payload</Label>
+            <textarea
+              id="proof-payload"
+              placeholder="zp://verify?wallet=0x...&cred=...&commitment=0x..."
+              value={proofPayload}
+              onChange={(e) => setProofPayload(e.target.value)}
+              className="min-h-[80px] w-full rounded-none border border-[#111111] bg-[#F9F9F7] px-3 py-2 font-mono-data text-sm placeholder:text-[#111111]/50"
+              rows={3}
+            />
+            <Button
+              type="button"
+              disabled={proofLoading || !proofPayload.trim()}
+              onClick={() => verifyProofPayload(proofPayload.trim())}
+            >
+              {proofLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify payload"
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {proofResult && (
+        <Card
+          className={
+            proofResult.valid
+              ? "border-2 border-[#CC0000] bg-[#F9F9F7] p-8"
+              : "border border-[#111111] bg-[#F9F9F7] p-8"
+          }
+        >
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2 text-[#111111]">
+              {proofResult.valid ? (
+                <>
+                  <ShieldCheck className="h-5 w-5 text-[#CC0000]" />
+                  Proof valid
+                </>
+              ) : (
+                <>
+                  <ShieldX className="h-5 w-5 text-[#111111]/70" />
+                  Proof invalid
+                </>
+              )}
+            </CardTitle>
+            <CardDescription className="font-body text-[#111111]/70">
+              {proofResult.valid
+                ? "Credential and proof match."
+                : proofResult.reason ?? "Verification failed."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 font-body text-sm">
+            {proofResult.valid && proofResult.publicSignals?.commitment && (
+              <p className="text-[#111111]/80">
+                Commitment:{" "}
+                <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
+                  {proofResult.publicSignals.commitment.slice(0, 14)}...
+                  {proofResult.publicSignals.commitment.slice(-10)}
+                </code>
+              </p>
+            )}
+            {proofResult.valid && proofResult.credentialId && (
+              <p className="text-[#111111]/80">
+                Credential:{" "}
+                <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
+                  {proofResult.credentialId}
+                </code>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {result && (
         <Card
           className={
@@ -318,8 +454,7 @@ export function VerifyForm() {
             <p className="text-[#111111]/80">
               Wallet:{" "}
               <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-1.5 py-0.5 text-xs text-[#111111]">
-                {result.walletAddress.slice(0, 12)}...
-                {result.walletAddress.slice(-10)}
+                {formatWalletAddress(result.walletAddress, 12, 10)}
               </code>
             </p>
             {result.credentialId && (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCredentialStatus, type CredentialStatusState } from "@/lib/hooks/use-credential-status";
+import { formatWalletAddress } from "@/lib/utils";
 
 type CredentialStatusPanelProps = {
   walletAddress: string | null;
@@ -68,7 +69,7 @@ function StatusContent({
           )}
           {walletAddress && (
             <p className="font-mono-data truncate text-xs text-[#111111]/60">
-              Wallet: {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
+              Wallet: {formatWalletAddress(walletAddress)}
             </p>
           )}
           {showRevoke && onRevoke && (
@@ -99,7 +100,7 @@ function StatusContent({
             Complete KYC again to renew your ZeroPass credential.
           </p>
           <Button asChild className="mt-2">
-            <Link href="/kyc">Get Verified</Link>
+            <Link href="/kyc" prefetch={false}>Get Verified</Link>
           </Button>
         </div>
       );
@@ -117,7 +118,7 @@ function StatusContent({
             Complete payment to activate your credential.
           </p>
           <Button asChild className="mt-2">
-            <Link href="/kyc">Complete KYC</Link>
+            <Link href="/kyc" prefetch={false}>Complete KYC</Link>
           </Button>
         </div>
       );
@@ -137,11 +138,11 @@ function StatusContent({
           </p>
           {walletAddress && (
             <p className="font-mono-data truncate text-xs text-[#111111]/60">
-              Wallet: {walletAddress.slice(0, 10)}...{walletAddress.slice(-8)}
+              Wallet: {formatWalletAddress(walletAddress)}
             </p>
           )}
           <Button asChild className="mt-2">
-            <Link href="/kyc">Get Verified</Link>
+            <Link href="/kyc" prefetch={false}>Get Verified</Link>
           </Button>
         </div>
       );

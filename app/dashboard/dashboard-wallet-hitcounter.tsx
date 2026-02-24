@@ -1,19 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { toast } from "sonner";
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, ExternalLink } from "lucide-react";
 import { UsdcBalance } from "@/components/usdc-balance";
 import { Button } from "@/components/ui/button";
-import { formatWalletAddress } from "@/lib/utils";
+import { formatWalletAddress, getVoyagerContractUrl, getStarkscanContractUrl } from "@/lib/utils";
 
 export function DashboardWalletHitCounter({
   hasWallet,
   normalizedPublicKey,
   walletPublicKey,
+  isDeployed = false,
 }: {
   hasWallet: boolean;
   normalizedPublicKey: string;
   walletPublicKey: string;
+  isDeployed?: boolean;
 }) {
   const shortWallet = normalizedPublicKey
     ? formatWalletAddress(normalizedPublicKey, 6, 4)
@@ -60,15 +63,60 @@ export function DashboardWalletHitCounter({
         <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
           Wallet address
         </p>
-        <Button
-          type="button"
-          variant="ghost"
-          className="mt-1 flex w-full items-center justify-between gap-2 rounded-none border-0 font-mono-data text-xs text-[#4ade80] hover:bg-white/10 hover:text-[#4ade80]"
-          onClick={copyFullWallet}
-        >
-          <span className="truncate">{shortWallet}</span>
-          <CopyIcon className="h-3.5 w-3.5 shrink-0" />
-        </Button>
+        <div className="mt-1 flex flex-col gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex w-full items-center justify-between gap-2 rounded-none border-0 font-mono-data text-xs text-[#4ade80] hover:bg-white/10 hover:text-[#4ade80]"
+            onClick={copyFullWallet}
+          >
+            <span className="truncate">{shortWallet}</span>
+            <CopyIcon className="h-3.5 w-3.5 shrink-0" />
+          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-none border-0 font-mono-data text-xs text-white/70 hover:bg-white/10 hover:text-white"
+              asChild
+            >
+              <Link
+                href={getVoyagerContractUrl(normalizedPublicKey)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1"
+              >
+                Voyager
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-none border-0 font-mono-data text-xs text-white/70 hover:bg-white/10 hover:text-white"
+              asChild
+            >
+              <Link
+                href={getStarkscanContractUrl(normalizedPublicKey)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1"
+              >
+                Starkscan
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+          {!isDeployed ? (
+            <p className="font-body text-[10px] text-amber-200/90">
+              Tu wallet aún no está desplegada en StarkNet. No aparecerá en Voyager ni Starkscan hasta que hagas tu primera transacción (ej. enviar USDC desde la app).
+            </p>
+          ) : (
+            <p className="font-body text-[10px] text-white/50">
+              Enlaces al explorador (mainnet). Si no aparece, prueba ambos.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

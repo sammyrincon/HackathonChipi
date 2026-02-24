@@ -35,6 +35,7 @@ export default async function DashboardPage() {
   const normalizedPublicKey = walletResponse?.normalizedPublicKey ?? "";
   const walletPublicKey = walletResponse?.publicKey ?? "";
   const hasWallet = Boolean(walletResponse);
+  const isDeployed = walletResponse?.isDeployed ?? false;
 
   // Credential wallet is the authoritative address for status, QR, and copy —
   // it may differ from the Chipi wallet when a demo or new wallet was used during KYC.
@@ -138,6 +139,7 @@ export default async function DashboardPage() {
             hasWallet={hasWallet || !!effectiveWallet}
             normalizedPublicKey={effectiveWallet || normalizedPublicKey}
             walletPublicKey={effectiveWallet || walletPublicKey}
+            isDeployed={isDeployed}
           />
         </div>
       </main>

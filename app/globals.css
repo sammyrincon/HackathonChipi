@@ -57,11 +57,11 @@
   color: var(--newsprint-fg, #111111);
 }
 
-/* Newsprint dot grid background */
+/* Newsprint dot grid background — softened so text stays readable */
 .newsprint-bg {
   background-color: var(--newsprint-bg, #F9F9F7);
-  background-image: radial-gradient(circle, #111111 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(17, 17, 17, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* How it works: black bg with white dot grid; white text only inside this block */
@@ -145,7 +145,7 @@
   letter-spacing: 0.1em;
 }
 
-/* Line grid overlay (section texture) */
+/* Line grid overlay (section texture) — subtle so content is readable */
 .newsprint-texture {
   position: relative;
 }
@@ -154,11 +154,11 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(0deg, transparent 98%, rgba(0, 0, 0, 0.02) 100%),
-    linear-gradient(90deg, transparent 98%, rgba(0, 0, 0, 0.02) 100%);
-  background-size: 3px 3px;
+    linear-gradient(0deg, transparent 98%, rgba(0, 0, 0, 0.03) 100%),
+    linear-gradient(90deg, transparent 98%, rgba(0, 0, 0, 0.03) 100%);
+  background-size: 4px 4px;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 /* Hero headline: fade-in + slide up on load */

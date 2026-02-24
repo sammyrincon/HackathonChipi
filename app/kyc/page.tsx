@@ -32,11 +32,11 @@ export default async function KycPage() {
         </div>
       </header>
 
-      <main className="py-12">
-        <h1 className="text-newsprint-h3 mb-2 text-[#111111]">
+      <main className="py-10 md:py-12">
+        <h1 className="text-newsprint-h3 mb-3 text-[#111111]">
           KYC verification
         </h1>
-        <p className="font-body mb-8 text-[#111111]/70">
+        <p className="font-body mb-8 text-sm leading-relaxed text-[#111111]/80">
           Upload a photo of your government-issued ID and a selfie to receive your
           ZeroPass credential linked to your Chipi wallet.
         </p>

@@ -84,8 +84,8 @@ export function DashboardRecentActivity({
   // Avoid hydration mismatch: Radix (Button) and query state can differ server vs client.
   if (!mounted) {
     return (
-      <div className="flex items-center gap-2 font-body text-sm text-[#111111]/70">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+      <div className="flex items-center gap-3 font-body text-sm leading-relaxed text-[#111111]/80">
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
         <span>Loading transactions...</span>
       </div>
     );
@@ -93,7 +93,7 @@ export function DashboardRecentActivity({
 
   if (!walletAddress) {
     return (
-      <p className="font-body text-sm text-[#111111]/70">
+      <p className="font-body text-sm leading-relaxed text-[#111111]/80">
         No wallet found. Create a Chipi wallet to see your transaction history.
       </p>
     );
@@ -101,8 +101,8 @@ export function DashboardRecentActivity({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 font-body text-sm text-[#111111]/70">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+      <div className="flex items-center gap-3 font-body text-sm leading-relaxed text-[#111111]/80">
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
         <span>Loading transactions...</span>
       </div>
     );
@@ -110,8 +110,8 @@ export function DashboardRecentActivity({
 
   if (isError && !treatErrorAsEmpty) {
     return (
-      <div className="space-y-2">
-        <p className="font-body text-sm text-[#CC0000]">
+      <div className="space-y-4">
+        <p className="font-body text-sm leading-relaxed text-[#CC0000]">
           Failed to load transaction history.
         </p>
         <Button
@@ -129,7 +129,7 @@ export function DashboardRecentActivity({
 
   if (transactions.length === 0 || treatErrorAsEmpty) {
     return (
-      <p className="font-body text-sm text-[#111111]/70">
+      <p className="font-body text-sm leading-relaxed text-[#111111]/80">
         No transactions yet. Your history will appear here after your first transfer.
       </p>
     );
@@ -139,19 +139,19 @@ export function DashboardRecentActivity({
     <table className="w-full border-collapse border border-[#111111]">
       <thead>
         <tr className="border-b border-[#111111] bg-[#111111] text-[#4ade80]">
-          <th className="border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
+          <th className="border-r border-white/20 px-5 py-4 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:text-sm">
             Type
           </th>
-          <th className="border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
+          <th className="border-r border-white/20 px-5 py-4 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:text-sm">
             Amount
           </th>
-          <th className="hidden border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:table-cell">
+          <th className="hidden border-r border-white/20 px-5 py-4 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:table-cell sm:text-sm">
             Hash
           </th>
-          <th className="border-r border-white/20 px-4 py-3 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
+          <th className="border-r border-white/20 px-5 py-4 text-left font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:text-sm">
             Status
           </th>
-          <th className="px-4 py-3 text-right font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80]">
+          <th className="px-5 py-4 text-right font-headline text-xs font-semibold uppercase tracking-widest text-[#4ade80] sm:text-sm">
             Time
           </th>
         </tr>
@@ -162,23 +162,23 @@ export function DashboardRecentActivity({
             key={tx.id ?? tx.transactionHash ?? i}
             className={`${i % 2 === 0 ? "bg-[#F5F5F5]" : "bg-[#F9F9F7]"} hover:bg-[#E5E5E0]`}
           >
-            <td className="border-r border-b border-[#111111] px-4 py-3 font-body text-sm text-[#111111]">
+            <td className="border-r border-b border-[#111111] px-5 py-4 font-body text-sm text-[#111111]">
               <span className="flex items-center gap-2">
                 {txIcon(tx.type)}
                 <span className="capitalize">{tx.type.replace(/_/g, " ")}</span>
               </span>
             </td>
-            <td className="border-r border-b border-[#111111] px-4 py-3 font-mono-data text-sm text-[#111111]">
+            <td className="border-r border-b border-[#111111] px-5 py-4 font-mono-data text-sm text-[#111111]">
               {tx.amount ?? "—"}{" "}
-              {tx.token && <span className="text-[#111111]/60">{tx.token}</span>}
+              {tx.token && <span className="text-[#111111]/70">{tx.token}</span>}
             </td>
-            <td className="hidden border-r border-b border-[#111111] px-4 py-3 font-mono-data text-xs text-[#111111]/70 sm:table-cell">
-              {tx.transactionHash ? formatWalletAddress(tx.transactionHash, 8, 6) : "—"}
+            <td className="hidden border-r border-b border-[#111111] px-5 py-4 font-mono-data text-sm text-[#111111]/80 sm:table-cell">
+              {tx.transactionHash ? formatWalletAddress(tx.transactionHash, 10, 8) : "—"}
             </td>
-            <td className="border-r border-b border-[#111111] px-4 py-3">
+            <td className="border-r border-b border-[#111111] px-5 py-4">
               {statusBadge(tx.status)}
             </td>
-            <td className="border-b border-[#111111] px-4 py-3 text-right font-mono-data text-xs text-[#111111]/70">
+            <td className="border-b border-[#111111] px-5 py-4 text-right font-mono-data text-sm text-[#111111]/80">
               {tx.createdAt ? timeAgo(new Date(tx.createdAt)) : "—"}
             </td>
           </tr>

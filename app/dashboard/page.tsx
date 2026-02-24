@@ -53,7 +53,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen newsprint-bg text-[#111111]">
-      <header className="border-b-8 border-[#111111] bg-newsprint py-4">
+      <header className="border-b-8 border-[#111111] bg-newsprint px-4 py-4 md:px-6">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-xl font-bold uppercase tracking-tight md:text-2xl">
             ZeroPass Identity Network
@@ -71,14 +71,14 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="border-b-2 border-[#111111] bg-newsprint py-2">
-        <p className="text-newsprint-meta text-[#111111]/80">
+      <div className="border-b-2 border-[#111111] bg-newsprint px-4 py-3 md:px-6">
+        <p className="text-newsprint-meta text-sm text-[#111111]/80">
           Vol. 1 | Est. 2026 | Starknet Edition
         </p>
       </div>
 
-      <nav className="border-b-2 border-[#111111] bg-newsprint py-4">
-        <div className="flex flex-wrap gap-2">
+      <nav className="border-b-2 border-[#111111] bg-newsprint px-4 py-5 md:px-6">
+        <div className="flex flex-wrap gap-3">
           <Button asChild variant="outline" size="sm" className="rounded-none border-2 border-[#111111] px-4 py-2 hover:bg-[#111111] hover:text-white transition-colors">
             <Link href="/kyc" prefetch={false}>Complete KYC</Link>
           </Button>
@@ -91,8 +91,8 @@ export default async function DashboardPage() {
       <DashboardRefreshOnFocus />
       <main className="newsprint-texture grid grid-cols-1 border-b-2 border-[#111111] md:grid-cols-2 md:gap-0">
         <div className="flex min-h-0 flex-col border-r-0 border-[#111111] md:border-r md:border-[#111111]">
-          <div className="flex min-h-0 flex-1 flex-col p-8">
-            <div className="relative border border-[#111111] bg-white p-8 animate-fade-in-up">
+          <div className="flex min-h-0 flex-1 flex-col gap-8 p-6 md:p-8 lg:p-10">
+            <div className="relative border border-[#111111] bg-white p-6 md:p-8 lg:p-10 animate-fade-in-up">
               <svg
                 className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.06]"
                 xmlns="http://www.w3.org/2000/svg"
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
               </div>
             </div>
             {effectiveWallet && (
-              <div className="mt-6">
+              <div>
                 <DashboardQrCode walletAddress={effectiveWallet} />
               </div>
             )}
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
                 walletType={walletResponse.walletType}
               />
             ) : (
-              <div className="mt-6">
+              <div>
                 <p className="font-body text-sm text-[#111111]/70">
                   Create your wallet first.
                 </p>
@@ -156,7 +156,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex max-h-48 flex-col items-center justify-center border-t border-[#111111] bg-[#111111] p-6 md:border-t-0 md:border-l-0">
+        <div className="flex max-h-48 min-h-[14rem] flex-col items-center justify-center border-t border-[#111111] bg-[#111111] p-8 md:border-t-0 md:border-l-0 md:p-10">
           <DashboardWalletHitCounter
             hasWallet={hasWallet || !!effectiveWallet}
             effectiveWallet={effectiveWallet}
@@ -165,9 +165,9 @@ export default async function DashboardPage() {
         </div>
       </main>
 
-      <section className="border-b-2 border-[#111111] bg-newsprint py-12">
-        <h2 className="text-newsprint-h2 mb-6 uppercase tracking-tight">
-            Recent activity
+      <section className="border-b-2 border-[#111111] bg-newsprint px-6 py-10 md:px-8 md:py-12">
+        <h2 className="text-newsprint-h2 mb-8 uppercase tracking-tight">
+          Recent activity
         </h2>
         <DashboardRecentActivity effectiveWallet={effectiveWallet} />
       </section>

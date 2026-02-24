@@ -29,14 +29,14 @@ export function DashboardWalletActions({
   const showVoyagerLink = address && isValidStarknetAddress(address);
 
   return (
-    <div className="mt-6 space-y-4">
-      <h3 className="font-headline text-sm font-semibold uppercase tracking-tight text-[#111111]">
+    <div className="space-y-5">
+      <h3 className="font-headline text-base font-semibold uppercase tracking-tight text-[#111111] md:text-lg">
         Wallet actions
       </h3>
-      <p className="font-body text-xs text-[#111111]/70">
+      <p className="font-body text-sm leading-relaxed text-[#111111]/80">
         Send a small amount of USDC (e.g. to yourself) to deploy your account on StarkNet. Chipi sponsors gas.
       </p>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-4">
         <SendUsdcDialog wallet={walletData} />
         {showVoyagerLink && (
           <Link

@@ -37,11 +37,11 @@ export default function VerifyPage() {
         </div>
       </header>
 
-      <main className="py-12">
-        <h1 className="text-newsprint-h3 mb-2 text-[#111111]">
+      <main className="py-10 md:py-12">
+        <h1 className="text-newsprint-h3 mb-3 text-[#111111]">
           Verify credential
         </h1>
-        <p className="font-body mb-8 text-[#111111]/70">
+        <p className="font-body mb-8 text-sm leading-relaxed text-[#111111]/80">
           Enter a wallet address or scan/paste a QR payload to verify a ZeroPass
           credential. No sign-in required.
         </p>

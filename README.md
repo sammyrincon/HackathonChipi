@@ -82,6 +82,10 @@ ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet
 
 ## Deploy
 
-1. Set env vars (no `DEMO_MODE` in production if you want real payments).
-2. `npx prisma migrate deploy`
-3. `npm run build && npm run start`
+1. **Environment (production checklist)**
+   - Use **production** Clerk keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) and set production sign-in/sign-up URLs (or domain) if needed.
+   - Use **production** Chipi keys: `NEXT_PUBLIC_CHIPI_API_KEY` and `CHIPI_SECRET_KEY` (both required for wallet/onboarding).
+   - Set `DATABASE_URL` (e.g. Supabase production).
+   - Leave `DEMO_MODE` / `NEXT_PUBLIC_DEMO_MODE` unset (or `false`) if you want real payments.
+2. **Database:** Run `npx prisma migrate deploy` against the production DB before or as part of first deploy.
+3. **Build and start:** `npm run build && npm run start` (build runs `prisma generate` automatically).

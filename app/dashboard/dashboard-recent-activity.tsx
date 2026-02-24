@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useGetTransactionList } from "@chipi-stack/nextjs";
 import { Loader2, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
@@ -61,6 +62,9 @@ export function DashboardRecentActivity({
 }: {
   effectiveWallet?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const { getToken } = useAuth();
   const rawWallet = effectiveWallet.trim();
   const walletAddress = rawWallet ? padStarknetAddress(rawWallet) : "";
@@ -77,6 +81,16 @@ export function DashboardRecentActivity({
   const transactions = txData?.data ?? [];
   const treatErrorAsEmpty = isError && isNoDataError(error);
 
+  // Avoid hydration mismatch: Radix (Button) and query state can differ server vs client.
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-2 font-body text-sm text-[#111111]/70">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+        <span>Loading transactions...</span>
+      </div>
+    );
+  }
+
   if (!walletAddress) {
     return (
       <p className="font-body text-sm text-[#111111]/70">
@@ -88,7 +102,7 @@ export function DashboardRecentActivity({
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 font-body text-sm text-[#111111]/70">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
         <span>Loading transactions...</span>
       </div>
     );

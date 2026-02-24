@@ -54,15 +54,15 @@ export function DashboardQrCode({ walletAddress }: { walletAddress: string }) {
 
   return (
     <Card className="border-[#111111] bg-[#F9F9F7]">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 py-4 pb-2 md:px-6 md:py-5">
         <div className="flex items-center gap-2">
           <QrCode className="h-5 w-5 text-[#CC0000]" />
-          <CardTitle className="font-headline text-[#111111]">My ZeroPass QR</CardTitle>
+          <CardTitle className="font-headline text-base text-[#111111] md:text-lg">My ZeroPass QR</CardTitle>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="border-transparent text-[#111111]/80 hover:bg-[#111111]/10 hover:text-[#111111]"
+          className="border-transparent text-sm text-[#111111]/80 hover:bg-[#111111]/10 hover:text-[#111111]"
           onClick={() => setExpanded((v) => !v)}
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -70,8 +70,8 @@ export function DashboardQrCode({ walletAddress }: { walletAddress: string }) {
         </Button>
       </CardHeader>
       {expanded && (
-        <CardContent className="flex flex-col items-center gap-4 pt-2">
-          <div className="rounded-none border border-[#111111] bg-white p-4">
+        <CardContent className="flex flex-col items-center gap-5 px-6 pb-6 pt-2 md:px-8 md:pb-8">
+          <div className="rounded-none border border-[#111111] bg-white p-5">
             <QRCodeSVG
               value={qrValue}
               size={180}
@@ -80,10 +80,10 @@ export function DashboardQrCode({ walletAddress }: { walletAddress: string }) {
               level="M"
             />
           </div>
-          <p className="font-body text-center text-xs text-[#111111]/70 max-w-xs">
+          <p className="font-body max-w-xs text-center text-sm leading-relaxed text-[#111111]/80">
             Show this QR to any business using ZeroPass. They scan it to instantly verify your identity — no personal data shared.
           </p>
-          <code className="font-mono-data rounded-none border border-[#111111] bg-[#F9F9F7] px-2 py-1 text-xs text-[#111111] break-all text-center max-w-xs">
+          <code className="font-mono-data max-w-xs break-all rounded-none border border-[#111111] bg-[#F9F9F7] px-3 py-2 text-center text-sm leading-relaxed text-[#111111]">
             {copyableText}
           </code>
         </CardContent>

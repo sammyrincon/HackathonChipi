@@ -43,7 +43,7 @@ export default function RootLayout({children}: {
         <html lang="en" suppressHydrationWarning>
           <body className={`${playfair.variable} ${lora.variable} ${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
             <OnboardingGuard>
-              <div className="mx-auto max-w-4xl px-8">
+              <div className="mx-auto max-w-4xl px-6 py-4 md:px-10 md:py-6">
                 {children}
               </div>
             </OnboardingGuard>

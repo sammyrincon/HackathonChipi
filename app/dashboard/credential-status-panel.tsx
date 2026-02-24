@@ -69,8 +69,8 @@ function StatusContent({
 
     case "verified":
       return (
-        <div className="space-y-4">
-          <span className="animate-badge-pulse inline-block border border-[#CC0000] bg-[#CC0000] px-2 py-0.5 font-mono-data text-xs font-semibold uppercase tracking-widest text-white">
+        <div className="space-y-5">
+          <span className="animate-badge-pulse inline-block border border-[#CC0000] bg-[#CC0000] px-2.5 py-1 font-mono-data text-xs font-semibold uppercase tracking-widest text-white">
             Verified
           </span>
           <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ function StatusContent({
             </h2>
           </div>
           {state.data.expiresAt && (
-            <p className="font-mono-data text-xs text-[#111111]/70">
+            <p className="font-mono-data text-sm text-[#111111]/70">
               Expires{" "}
               {new Date(state.data.expiresAt).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -90,37 +90,37 @@ function StatusContent({
             </p>
           )}
           {explorerAddress && (
-            <p className="font-mono-data flex flex-wrap items-center gap-2 truncate text-xs text-[#111111]/60">
-              <span>Wallet: {formatWalletAddress(explorerAddress)}</span>
+            <p className="font-mono-data flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm leading-relaxed text-[#111111]/80">
+              <span>Wallet: {formatWalletAddress(explorerAddress, 12, 10)}</span>
               {isValidStarknetAddress(explorerAddress) ? (
                 <>
                   <Link
                     href={getVoyagerContractUrl(explorerAddress)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+                    className="inline-flex items-center gap-1 text-sm text-[#111111]/80 underline hover:text-[#111111]"
                   >
                     Voyager
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
                   <Link
                     href={getStarkscanContractUrl(explorerAddress)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+                    className="inline-flex items-center gap-1 text-sm text-[#111111]/80 underline hover:text-[#111111]"
                   >
                     Starkscan
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
                 </>
               ) : (
-                <span className="text-amber-600">Wallet address not activated or invalid.</span>
+                <span className="text-sm text-amber-600">Wallet address not activated or invalid.</span>
               )}
             </p>
           )}
           {showCredentialIssued && (
-            <p className="font-mono-data text-[10px] text-[#111111]/50">
-              Credential-issued wallet: {formatWalletAddress(credDisplay)}
+            <p className="font-mono-data text-sm text-[#111111]/60">
+              Credential-issued wallet: {formatWalletAddress(credDisplay, 12, 10)}
             </p>
           )}
           {showRevoke && onRevoke && (
@@ -207,8 +207,8 @@ function StatusContent({
             Complete KYC to receive your ZeroPass identity linked to your wallet.
           </p>
           {explorerAddress && (
-            <p className="font-mono-data truncate text-xs text-[#111111]/60">
-              Wallet: {isValidStarknetAddress(explorerAddress) ? formatWalletAddress(explorerAddress) : "Wallet address not activated or invalid."}
+            <p className="font-mono-data text-sm leading-relaxed text-[#111111]/70">
+              Wallet: {isValidStarknetAddress(explorerAddress) ? formatWalletAddress(explorerAddress, 12, 10) : "Wallet address not activated or invalid."}
             </p>
           )}
           <Button asChild className="mt-2">

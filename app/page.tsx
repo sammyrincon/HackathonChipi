@@ -73,11 +73,17 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div className="relative z-10 mt-8 overflow-hidden border-t-2 border-[#111111] bg-[#111111] py-3">
-            <div className="flex w-max animate-ticker-scroll items-center gap-8 whitespace-nowrap font-mono-data text-sm font-medium uppercase tracking-widest text-white">
-              <span>VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · </span>
-              <span>VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · </span>
-            </div>
+        </section>
+
+        {/* Stock-style ticker */}
+        <section className="ticker-strip overflow-hidden border-y-2 border-[#111111] bg-[#111111]" aria-hidden>
+          <div className="ticker-track flex w-max items-center whitespace-nowrap py-3">
+            <span className="ticker-item font-mono-data text-xs font-semibold uppercase tracking-[0.2em] text-[#4ade80] md:text-sm">
+              || VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · CHIPIPAY ||
+            </span>
+            <span className="ticker-item font-mono-data text-xs font-semibold uppercase tracking-[0.2em] text-[#4ade80] md:text-sm">
+              || VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · CHIPIPAY ||
+            </span>
           </div>
         </section>
 

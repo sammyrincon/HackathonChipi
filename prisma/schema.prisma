@@ -50,3 +50,13 @@ model CredentialProof {
   @@index([walletAddress])
   @@index([credentialId])
 }
+
+// Tracks that user completed wallet onboarding. Used for redirect: has row → dashboard, no row → onboarding.
+// Do NOT store private keys or encryptedPrivateKey here without explicit migration and guards.
+model UserWalletSecret {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  createdAt   DateTime @default(now())
+
+  @@index([clerkUserId])
+}

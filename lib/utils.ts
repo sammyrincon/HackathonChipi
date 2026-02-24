@@ -13,6 +13,8 @@ export function normalizeWallet(wallet: string): string {
   return wallet.trim().toLowerCase();
 }
 
+export { isValidStarknetAddress } from "./isValidStarknetAddress";
+
 const VOYAGER_MAINNET_URL = "https://voyager.online";
 const STARKSCAN_MAINNET_URL = "https://starkscan.co";
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { isValidStarknetAddress } from "@/lib/isValidStarknetAddress";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,10 +46,11 @@ export function DashboardQrCode({ walletAddress }: { walletAddress: string }) {
     };
   }, [expanded, walletAddress]);
 
-  if (!walletAddress) return null;
+  const address = walletAddress?.trim() ?? "";
+  if (!address || !isValidStarknetAddress(address)) return null;
 
-  const qrValue = proofStatus?.payload ?? JSON.stringify({ walletAddress });
-  const copyableText = proofStatus?.payload ?? walletAddress;
+  const qrValue = proofStatus?.payload ?? JSON.stringify({ walletAddress: address });
+  const copyableText = proofStatus?.payload ?? address;
 
   return (
     <Card className="border-[#111111] bg-[#F9F9F7]">

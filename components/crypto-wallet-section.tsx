@@ -34,8 +34,7 @@ export function CryptoWalletSection() {
     );
   }
 
-  const normalizedPublicKey = walletResponse.normalizedPublicKey ?? "";
-  const walletPublicKey = walletResponse.publicKey ?? "";
+  const effectiveWallet = (walletResponse.normalizedPublicKey ?? "").trim();
   const walletForTransfer: WalletData = {
     publicKey: walletResponse.publicKey,
     encryptedPrivateKey: walletResponse.encryptedPrivateKey,
@@ -45,10 +44,7 @@ export function CryptoWalletSection() {
 
   return (
     <div className="space-y-6 w-full">
-      <WalletSummary
-        normalizedPublicKey={normalizedPublicKey}
-        walletPublicKey={walletPublicKey}
-      />
+      <WalletSummary effectiveWallet={effectiveWallet} />
       <div className="flex gap-3 justify-center flex-wrap">
         <SendUsdcDialog wallet={walletForTransfer} />
         <Button variant="outline" asChild>

@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const credentialId = `zp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + EXPIRY_DAYS);
@@ -87,6 +86,29 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.credential.findUnique({
       where: { clerkUserId: userId },
     });
+
+    const existingWalletNormalized = existing?.walletAddress?.trim().toLowerCase() ?? "";
+    const incomingWalletNormalized = walletAddress.trim().toLowerCase();
+
+    if (existing?.walletAddress && existingWalletNormalized !== incomingWalletNormalized) {
+      console.error("WALLET_MISMATCH: Credential already linked to a different wallet. Blocking update.", {
+        userId,
+        existingWalletPrefix: existing.walletAddress.slice(0, 18) + "...",
+        incomingWalletPrefix: walletAddress.slice(0, 18) + "...",
+      });
+      return NextResponse.json(
+        {
+          error: "Credential already linked to a different wallet. Do not overwrite.",
+          code: "WALLET_MISMATCH",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Preserve existing credentialId on update so CredentialProof rows are updated in-place
+    // instead of accumulating new rows on each re-submission.
+    const credentialId =
+      existing?.credentialId ?? `zp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
     let status: "PENDING" | "VERIFIED" | "REVOKED" | "EXPIRED" = "PENDING";
     let issuedAt: Date | null = null;
@@ -132,7 +154,7 @@ export async function POST(request: NextRequest) {
         expiresAt: createExpiresAt,
       },
       update: {
-        walletAddress,
+        ...(existing?.walletAddress ? {} : { walletAddress }),
         credentialId,
         status: statusEnum,
         transactionHash: txHash ?? null,

@@ -13,29 +13,40 @@ import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock, Fingerprint, Ban
 import { Button } from "@/components/ui/button";
 import { useCredentialStatus, type CredentialStatusState } from "@/lib/hooks/use-credential-status";
 import { formatWalletAddress, getVoyagerContractUrl, getStarkscanContractUrl } from "@/lib/utils";
+import { isValidStarknetAddress } from "@/lib/isValidStarknetAddress";
 import { WalletPinDialog } from "@/components/wallet-pin-dialog";
 import { toast } from "sonner";
 
 type CredentialStatusPanelProps = {
-  walletAddress: string | null;
+  /** Funded wallet used for explorer links and QR. Single source of truth for links. */
+  effectiveWallet: string | null;
+  /** Credential-issued wallet (for display only; never used for links or QR). */
+  credentialWalletAddress?: string | null;
   showRevoke?: boolean;
 };
 
 function StatusContent({
   state,
-  walletAddress,
+  effectiveWallet,
+  credentialWalletAddress,
   onRevoke,
   showRevoke,
   revoking,
   passkeySection,
 }: {
   state: CredentialStatusState;
-  walletAddress: string | null;
+  effectiveWallet: string | null;
+  credentialWalletAddress: string | null;
   onRevoke?: () => Promise<void>;
   showRevoke?: boolean;
   revoking?: boolean;
   passkeySection?: React.ReactNode;
 }) {
+  const explorerAddress = (effectiveWallet ?? "").trim();
+  const credDisplay = (credentialWalletAddress ?? "").trim();
+  const showCredentialIssued =
+    credDisplay && credDisplay.toLowerCase() !== explorerAddress.toLowerCase();
+
   switch (state.kind) {
     case "loading":
       return (
@@ -78,27 +89,38 @@ function StatusContent({
               })}
             </p>
           )}
-          {walletAddress && (
+          {explorerAddress && (
             <p className="font-mono-data flex flex-wrap items-center gap-2 truncate text-xs text-[#111111]/60">
-              <span>Wallet: {formatWalletAddress(walletAddress)}</span>
-              <Link
-                href={getVoyagerContractUrl(walletAddress)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
-              >
-                Voyager
-                <ExternalLink className="h-3 w-3" />
-              </Link>
-              <Link
-                href={getStarkscanContractUrl(walletAddress)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
-              >
-                Starkscan
-                <ExternalLink className="h-3 w-3" />
-              </Link>
+              <span>Wallet: {formatWalletAddress(explorerAddress)}</span>
+              {isValidStarknetAddress(explorerAddress) ? (
+                <>
+                  <Link
+                    href={getVoyagerContractUrl(explorerAddress)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+                  >
+                    Voyager
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                  <Link
+                    href={getStarkscanContractUrl(explorerAddress)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+                  >
+                    Starkscan
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </>
+              ) : (
+                <span className="text-amber-600">Wallet address not activated or invalid.</span>
+              )}
+            </p>
+          )}
+          {showCredentialIssued && (
+            <p className="font-mono-data text-[10px] text-[#111111]/50">
+              Credential-issued wallet: {formatWalletAddress(credDisplay)}
             </p>
           )}
           {showRevoke && onRevoke && (
@@ -184,9 +206,9 @@ function StatusContent({
           <p className="font-body text-sm text-[#111111]/70">
             Complete KYC to receive your ZeroPass identity linked to your wallet.
           </p>
-          {walletAddress && (
+          {explorerAddress && (
             <p className="font-mono-data truncate text-xs text-[#111111]/60">
-              Wallet: {formatWalletAddress(walletAddress)}
+              Wallet: {isValidStarknetAddress(explorerAddress) ? formatWalletAddress(explorerAddress) : "Wallet address not activated or invalid."}
             </p>
           )}
           <Button asChild className="mt-2">
@@ -280,11 +302,12 @@ function PasskeyUpgrade() {
 }
 
 export function CredentialStatusPanel({
-  walletAddress,
+  effectiveWallet,
+  credentialWalletAddress = null,
   showRevoke = true,
 }: CredentialStatusPanelProps) {
   const router = useRouter();
-  const { state, loading, refetch } = useCredentialStatus(walletAddress);
+  const { state, loading, refetch } = useCredentialStatus(effectiveWallet);
   const [revoking, setRevoking] = useState(false);
 
   async function handleRevoke() {
@@ -311,7 +334,8 @@ export function CredentialStatusPanel({
     <div className="relative z-10 space-y-2">
       <StatusContent
         state={state}
-        walletAddress={walletAddress}
+        effectiveWallet={effectiveWallet}
+        credentialWalletAddress={credentialWalletAddress ?? null}
         onRevoke={handleRevoke}
         showRevoke={showRevoke && state.kind === "verified"}
         revoking={revoking}

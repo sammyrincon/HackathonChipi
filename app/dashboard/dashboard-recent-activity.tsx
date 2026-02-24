@@ -1,10 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import {
-  useGetWallet,
-  useGetTransactionList,
-} from "@chipi-stack/nextjs";
+import { useGetTransactionList } from "@chipi-stack/nextjs";
 import { Loader2, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatWalletAddress } from "@/lib/utils";
@@ -47,12 +44,13 @@ function statusBadge(status: string) {
   return <span className={`${base} border border-[#111111]/40 text-[#111111]/60`}>{status}</span>;
 }
 
-export function DashboardRecentActivity() {
+export function DashboardRecentActivity({
+  effectiveWallet = "",
+}: {
+  effectiveWallet?: string;
+}) {
   const { getToken } = useAuth();
-  const { data: walletResponse } = useGetWallet({ getBearerToken: getToken });
-
-  const walletAddress =
-    walletResponse?.normalizedPublicKey ?? walletResponse?.publicKey ?? "";
+  const walletAddress = effectiveWallet.trim();
 
   const { data: txData, isLoading, isError, refetch } = useGetTransactionList(
     walletAddress

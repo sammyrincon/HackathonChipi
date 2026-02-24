@@ -136,12 +136,14 @@ export async function POST(request: NextRequest) {
       status === "VERIFIED" && issuedAt ? issuedAt : now;
 
     const isDemo = allowDemoKyc && (bodyStatus === "VERIFIED" || bodyStatus === "PENDING");
-    console.log("KYC REQUEST", {
-      userId,
-      walletAddress: walletAddress.slice(0, 14) + "...",
-      statusUsed: status,
-      isDemo: !!isDemo,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("KYC REQUEST", {
+        userId,
+        walletAddress: walletAddress.slice(0, 14) + "...",
+        statusUsed: status,
+        isDemo: !!isDemo,
+      });
+    }
     const credential = await prisma.credential.upsert({
       where: { clerkUserId: userId },
       create: {
@@ -202,13 +204,17 @@ export async function POST(request: NextRequest) {
           publicSignals,
         },
       });
-      console.log("DEMO_PROOF_UPSERT", { credentialId: credential.credentialId });
+      if (process.env.NODE_ENV === "development") {
+        console.log("DEMO_PROOF_UPSERT", { credentialId: credential.credentialId });
+      }
     }
 
-    console.log("KYC UPSERT RESULT", {
-      credentialId: credential.credentialId,
-      status: credential.status,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("KYC UPSERT RESULT", {
+        credentialId: credential.credentialId,
+        status: credential.status,
+      });
+    }
 
     const response = {
       ok: credential.status === CredentialStatus.VERIFIED,

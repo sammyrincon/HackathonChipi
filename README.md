@@ -35,6 +35,8 @@ ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet
    | `NEXT_PUBLIC_CHIPI_API_KEY` | Chipi API key (optional in demo mode) |
    | `NEXT_PUBLIC_MERCHANT_WALLET` | Starknet address for payments (optional in demo mode) |
 
+   **Voyager:** Wallet links use Voyager mainnet (voyager.online) only. The contract may not appear until the first on-chain transaction (counterfactual deployment).
+
 3. **Database**
 
    ```bash

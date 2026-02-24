@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { toast } from "sonner";
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UsdcBalance } from "@/components/usdc-balance";
+import { getVoyagerContractUrl, getStarkscanContractUrl } from "@/lib/utils";
 
 export function WalletSummary({
   normalizedPublicKey,
@@ -28,10 +30,32 @@ export function WalletSummary({
   };
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="ghost" className="font-mono-data border-transparent text-[#111111] hover:bg-[#111111]/10" onClick={copyFullWallet}>
           {shortWallet}
           <CopyIcon className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="sm" className="font-body text-xs" asChild>
+          <Link
+            href={getVoyagerContractUrl(normalizedPublicKey)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
+          >
+            Voyager
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm" className="font-body text-xs" asChild>
+          <Link
+            href={getStarkscanContractUrl(normalizedPublicKey)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
+          >
+            Starkscan
+            <ExternalLink className="h-3 w-3" />
+          </Link>
         </Button>
       </div>
       <div className="space-y-2">

@@ -9,10 +9,10 @@ import {
   useChipiWallet,
   useMigrateWalletToPasskey,
 } from "@chipi-stack/nextjs";
-import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock, Fingerprint, Ban } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldAlert, AlertCircle, Clock, Fingerprint, Ban, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCredentialStatus, type CredentialStatusState } from "@/lib/hooks/use-credential-status";
-import { formatWalletAddress } from "@/lib/utils";
+import { formatWalletAddress, getVoyagerContractUrl, getStarkscanContractUrl } from "@/lib/utils";
 import { WalletPinDialog } from "@/components/wallet-pin-dialog";
 import { toast } from "sonner";
 
@@ -79,8 +79,26 @@ function StatusContent({
             </p>
           )}
           {walletAddress && (
-            <p className="font-mono-data truncate text-xs text-[#111111]/60">
-              Wallet: {formatWalletAddress(walletAddress)}
+            <p className="font-mono-data flex flex-wrap items-center gap-2 truncate text-xs text-[#111111]/60">
+              <span>Wallet: {formatWalletAddress(walletAddress)}</span>
+              <Link
+                href={getVoyagerContractUrl(walletAddress)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+              >
+                Voyager
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+              <Link
+                href={getStarkscanContractUrl(walletAddress)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-0.5 text-[#111111]/70 underline hover:text-[#111111]"
+              >
+                Starkscan
+                <ExternalLink className="h-3 w-3" />
+              </Link>
             </p>
           )}
           {showRevoke && onRevoke && (

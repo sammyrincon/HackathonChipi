@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { CredentialStatusPanel } from "./credential-status-panel";
 import { DashboardWalletHitCounter } from "./dashboard-wallet-hitcounter";
+import { DashboardWalletActions } from "./dashboard-wallet-actions";
 import { DashboardRecentActivity } from "./dashboard-recent-activity";
 import { DashboardQrCode } from "./dashboard-qr-code";
 import { DashboardRefreshOnFocus } from "./dashboard-refresh-on-focus";
 import { DashboardRefreshButton } from "./dashboard-refresh-button";
+import { DashboardWalletMismatchWarning } from "./dashboard-wallet-mismatch-warning";
+import { DashboardWalletDebugPanel } from "./dashboard-wallet-debug-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -32,20 +35,21 @@ export default async function DashboardPage() {
     // Wallet not found or Chipi API unavailable
   }
 
-  const normalizedPublicKey = walletResponse?.normalizedPublicKey ?? "";
-  const walletPublicKey = walletResponse?.publicKey ?? "";
+  const chipiAddr = (walletResponse?.normalizedPublicKey ?? "").trim();
   const hasWallet = Boolean(walletResponse);
   const isDeployed = walletResponse?.isDeployed ?? false;
 
-  // Credential wallet is the authoritative address for status, QR, and copy —
-  // it may differ from the Chipi wallet when a demo or new wallet was used during KYC.
   const credential = await prisma.credential.findFirst({
     where: { clerkUserId: userId },
     orderBy: { issuedAt: "desc" },
     select: { walletAddress: true },
   });
+  const credAddr = (credential?.walletAddress ?? "").trim();
+  const chipiNorm = chipiAddr.toLowerCase();
+  const credNorm = credAddr.toLowerCase();
   const effectiveWallet =
-    credential?.walletAddress || normalizedPublicKey || walletPublicKey;
+    chipiAddr && (!credAddr || credNorm === chipiNorm) ? chipiAddr : credAddr;
+  const walletMismatch = Boolean(credAddr && chipiAddr && credNorm !== chipiNorm);
 
   return (
     <div className="min-h-screen newsprint-bg text-[#111111]">
@@ -122,13 +126,31 @@ export default async function DashboardPage() {
               </svg>
               <div className="relative z-10">
                 <CredentialStatusPanel
-                  walletAddress={effectiveWallet || null}
+                  effectiveWallet={effectiveWallet || null}
+                  credentialWalletAddress={credAddr || null}
                 />
+                {walletMismatch && (
+                  <DashboardWalletMismatchWarning chipiAddr={chipiAddr} />
+                )}
               </div>
             </div>
             {effectiveWallet && (
               <div className="mt-6">
                 <DashboardQrCode walletAddress={effectiveWallet} />
+              </div>
+            )}
+            {walletResponse?.normalizedPublicKey ? (
+              <DashboardWalletActions
+                normalizedPublicKey={walletResponse.normalizedPublicKey}
+                publicKey={walletResponse.publicKey}
+                encryptedPrivateKey={walletResponse.encryptedPrivateKey}
+                walletType={walletResponse.walletType}
+              />
+            ) : (
+              <div className="mt-6">
+                <p className="font-body text-sm text-[#111111]/70">
+                  Create your wallet first.
+                </p>
               </div>
             )}
           </div>
@@ -137,8 +159,7 @@ export default async function DashboardPage() {
         <div className="flex max-h-48 flex-col items-center justify-center border-t border-[#111111] bg-[#111111] p-6 md:border-t-0 md:border-l-0">
           <DashboardWalletHitCounter
             hasWallet={hasWallet || !!effectiveWallet}
-            normalizedPublicKey={effectiveWallet || normalizedPublicKey}
-            walletPublicKey={effectiveWallet || walletPublicKey}
+            effectiveWallet={effectiveWallet}
             isDeployed={isDeployed}
           />
         </div>
@@ -148,8 +169,16 @@ export default async function DashboardPage() {
         <h2 className="text-newsprint-h2 mb-6 uppercase tracking-tight">
             Recent activity
         </h2>
-        <DashboardRecentActivity />
+        <DashboardRecentActivity effectiveWallet={effectiveWallet} />
       </section>
+
+      {process.env.NODE_ENV === "development" && (
+        <DashboardWalletDebugPanel
+          chipiNormalizedPublicKey={chipiAddr}
+          credentialWalletAddress={credAddr}
+          effectiveWallet={effectiveWallet}
+        />
+      )}
     </div>
   );
 }

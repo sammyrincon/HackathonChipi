@@ -45,8 +45,11 @@ const FormSchema = z
 
 export function CreateWalletDialog({
   onSuccess,
+  hasExistingWallet = false,
 }: {
   onSuccess?: () => void;
+  /** When true, we NEVER call createWallet — safety guard to avoid overwriting funded wallets. */
+  hasExistingWallet?: boolean;
 }) {
   const { getToken, userId: clerkUserId } = useAuth();
   const [open, setOpen] = useState(false);
@@ -61,6 +64,10 @@ export function CreateWalletDialog({
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    if (hasExistingWallet) {
+      toast.error("A wallet already exists. Do not regenerate.");
+      return;
+    }
     const token = await getToken();
     if (!token || !clerkUserId) {
       toast.error("Authentication failed");

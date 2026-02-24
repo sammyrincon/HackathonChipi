@@ -5,27 +5,36 @@ import { toast } from "sonner";
 import { CopyIcon, ExternalLink } from "lucide-react";
 import { UsdcBalance } from "@/components/usdc-balance";
 import { Button } from "@/components/ui/button";
-import { formatWalletAddress, getVoyagerContractUrl, getStarkscanContractUrl } from "@/lib/utils";
+import {
+  formatWalletAddress,
+  getVoyagerContractUrl,
+  getStarkscanContractUrl,
+} from "@/lib/utils";
+import { isValidStarknetAddress } from "@/lib/isValidStarknetAddress";
+
+function cleanAddress(address: string): string {
+  return address?.trim() ?? "";
+}
 
 export function DashboardWalletHitCounter({
   hasWallet,
-  normalizedPublicKey,
-  walletPublicKey,
+  effectiveWallet,
   isDeployed = false,
 }: {
   hasWallet: boolean;
-  normalizedPublicKey: string;
-  walletPublicKey: string;
+  effectiveWallet: string;
   isDeployed?: boolean;
 }) {
-  const shortWallet = normalizedPublicKey
-    ? formatWalletAddress(normalizedPublicKey, 6, 4)
+  const address = cleanAddress(effectiveWallet);
+  const hasValidAddress = isValidStarknetAddress(address);
+  const shortWallet = hasValidAddress
+    ? formatWalletAddress(address, 6, 4)
     : "";
 
   const copyFullWallet = async () => {
-    if (!normalizedPublicKey) return;
+    if (!hasValidAddress) return;
     try {
-      await navigator.clipboard.writeText(normalizedPublicKey);
+      await navigator.clipboard.writeText(address);
       toast.success("Wallet copied to clipboard");
     } catch {
       toast.error("Could not copy to clipboard");
@@ -48,6 +57,22 @@ export function DashboardWalletHitCounter({
     );
   }
 
+  if (!hasValidAddress) {
+    return (
+      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-8 text-center">
+        <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
+          Wallet balance
+        </p>
+        <p className="mt-2 font-mono-data text-2xl font-bold tabular-nums text-[#4ade80]/80">
+          —
+        </p>
+        <p className="mt-4 font-body text-xs text-amber-200/90">
+          Wallet address not activated or invalid.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-8 text-center">
       <p className="font-mono-data text-xs uppercase tracking-widest text-white/70">
@@ -55,7 +80,7 @@ export function DashboardWalletHitCounter({
       </p>
       <div className="mt-2">
         <UsdcBalance
-          walletPublicKey={walletPublicKey}
+          walletPublicKey={address}
           className="text-2xl font-bold text-[#4ade80] md:text-3xl"
         />
       </div>
@@ -81,7 +106,7 @@ export function DashboardWalletHitCounter({
               asChild
             >
               <Link
-                href={getVoyagerContractUrl(normalizedPublicKey)}
+                href={getVoyagerContractUrl(address)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1"
@@ -97,7 +122,7 @@ export function DashboardWalletHitCounter({
               asChild
             >
               <Link
-                href={getStarkscanContractUrl(normalizedPublicKey)}
+                href={getStarkscanContractUrl(address)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1"

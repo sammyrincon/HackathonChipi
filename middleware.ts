@@ -14,6 +14,10 @@ const isPublicRoute = createRouteMatcher([
   "/api/proof/status",
 ]);
 
+/**
+ * Auth only. We NEVER create or regenerate wallet in middleware.
+ * Onboarding redirect (UserWalletSecret exists → dashboard, else → /onboarding) is handled by OnboardingGuard in layout.
+ */
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect();

@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useGetTransactionList } from "@chipi-stack/nextjs";
 import { Loader2, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatWalletAddress } from "@/lib/utils";
+import { formatWalletAddress, padStarknetAddress } from "@/lib/utils";
 
 function timeAgo(date: Date): string {
   const diff = Date.now() - date.getTime();
@@ -44,15 +44,28 @@ function statusBadge(status: string) {
   return <span className={`${base} border border-[#111111]/40 text-[#111111]/60`}>{status}</span>;
 }
 
+function isNoDataError(error: unknown): boolean {
+  if (!error) return false;
+  const msg = typeof (error as Error).message === "string" ? (error as Error).message.toLowerCase() : "";
+  const status = (error as { status?: number }).status;
+  return (
+    status === 404 ||
+    msg.includes("not found") ||
+    msg.includes("no transaction") ||
+    msg.includes("404")
+  );
+}
+
 export function DashboardRecentActivity({
   effectiveWallet = "",
 }: {
   effectiveWallet?: string;
 }) {
   const { getToken } = useAuth();
-  const walletAddress = effectiveWallet.trim();
+  const rawWallet = effectiveWallet.trim();
+  const walletAddress = rawWallet ? padStarknetAddress(rawWallet) : "";
 
-  const { data: txData, isLoading, isError, refetch } = useGetTransactionList(
+  const { data: txData, isLoading, isError, error, refetch } = useGetTransactionList(
     walletAddress
       ? {
           query: { walletAddress, page: 1, limit: 20 },
@@ -62,6 +75,7 @@ export function DashboardRecentActivity({
   );
 
   const transactions = txData?.data ?? [];
+  const treatErrorAsEmpty = isError && isNoDataError(error);
 
   if (!walletAddress) {
     return (
@@ -80,7 +94,7 @@ export function DashboardRecentActivity({
     );
   }
 
-  if (isError) {
+  if (isError && !treatErrorAsEmpty) {
     return (
       <div className="space-y-2">
         <p className="font-body text-sm text-[#CC0000]">
@@ -99,7 +113,7 @@ export function DashboardRecentActivity({
     );
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 || treatErrorAsEmpty) {
     return (
       <p className="font-body text-sm text-[#111111]/70">
         No transactions yet. Your history will appear here after your first transfer.

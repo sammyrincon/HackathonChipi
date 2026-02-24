@@ -189,6 +189,36 @@
   animation: ticker-scroll 25s linear infinite;
 }
 
+/* Stock-style ticker: seamless horizontal scroll */
+.ticker-strip {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
+}
+.ticker-track {
+  animation: ticker-scroll 28s linear infinite;
+  display: flex;
+  width: max-content;
+}
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+.ticker-item {
+  flex-shrink: 0;
+  padding-right: 4rem;
+}
+
 /* Blinking cursor (terminal) */
 @keyframes cursor-blink {
   0%,

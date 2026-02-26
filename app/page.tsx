@@ -2,6 +2,7 @@ import { SignedIn, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, LayoutDashboard } from "lucide-react";
+import { HowItWorks } from "@/components/home/HowItWorks";
 
 export default function Home() {
   return (
@@ -21,10 +22,11 @@ export default function Home() {
       </header>
 
       <main>
-        {/* Hero section with background image */}
-        <section className="relative flex min-h-[60vh] flex-col border-b-4 border-[#111111]">
+        {/* Hero: dark base, editorial texture, centered content */}
+        <section className="relative flex min-h-[70vh] flex-col bg-black text-white">
+          {/* Background image at 20–30% opacity */}
           <div
-            className="absolute inset-0 opacity-[0.10]"
+            className="absolute inset-0 opacity-[0.25]"
             style={{
               backgroundImage: "url(https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1200)",
               backgroundSize: "cover",
@@ -32,104 +34,86 @@ export default function Home() {
             }}
             aria-hidden
           />
-          <div className="relative z-10 flex flex-1 flex-col justify-center px-4 py-12 md:px-8">
-            <h1 className="animate-hero-fade-slide-up font-headline text-6xl font-black uppercase leading-tight tracking-tighter text-[#111111] md:text-8xl">
-              Verify once. Access anywhere.
-            </h1>
-            <p className="mt-6 max-w-2xl font-body text-lg text-[#111111]/80">
-              ZeroPass issues a privacy-preserving credential on Starknet. Complete KYC once,
-              receive a verifiable credential linked to your wallet, and prove your identity
-              anywhere without sharing personal data.
-            </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-              <Button
-                asChild
-                size="lg"
-                className="w-full rounded-none bg-[#111111] font-semibold uppercase tracking-wide text-white hover:bg-[#111111]/90 sm:w-auto"
-                variant="default"
-              >
-                <Link href="/kyc" prefetch={false}>
-                  Get verified
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="w-full rounded-none border-2 border-[#111111] font-semibold uppercase tracking-wide hover:bg-[#111111] hover:text-white sm:w-auto"
-              >
-                <Link href="/business">Verify a credential</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="w-full rounded-none border-2 border-[#111111] font-semibold uppercase tracking-wide hover:bg-[#111111] hover:text-white sm:w-auto"
-              >
-                <Link href="/dashboard" className="flex items-center gap-2">
-                  <LayoutDashboard className="h-5 w-5" />
-                  Go to dashboard
-                </Link>
-              </Button>
+          {/* Soft overlay for readability */}
+          <div className="absolute inset-0 bg-black/60" aria-hidden />
+          {/* Very faint editorial grid (3–5% opacity) */}
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+            aria-hidden
+          />
+
+          {/* Demo badge: top-right pill (only if NEXT_PUBLIC_DEMO) */}
+          {process.env.NEXT_PUBLIC_DEMO === "true" && (
+            <div className="absolute right-4 top-4 z-20 md:right-6 md:top-6" aria-label="Demo build">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/50 bg-transparent px-3 py-1.5 font-mono text-xs tracking-wide text-emerald-400">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden />
+                Demo Build
+              </span>
             </div>
-          </div>
-        </section>
+          )}
 
-        {/* Stock-style ticker */}
-        <section className="ticker-strip overflow-hidden border-y-2 border-[#111111] bg-[#111111]" aria-hidden>
-          <div className="ticker-track flex w-max items-center whitespace-nowrap py-3">
-            <span className="ticker-item font-mono-data text-xs font-semibold uppercase tracking-[0.2em] text-[#4ade80] md:text-sm">
-              || VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · CHIPIPAY ||
-            </span>
-            <span className="ticker-item font-mono-data text-xs font-semibold uppercase tracking-[0.2em] text-[#4ade80] md:text-sm">
-              || VERIFIED ON STARKNET · GASLESS TRANSACTIONS · PRIVACY PRESERVING · ZK POWERED · CHIPIPAY ||
-            </span>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section className="how-it-works-bg border-t-4 border-b-4 border-[#CC0000] py-12 text-white">
-          <div className="px-4 md:px-8">
-            <h2 className="font-headline mb-8 text-3xl font-bold uppercase text-white md:text-4xl">
-              How it works
-            </h2>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-0">
-              <div className="animate-fade-in-up border-b border-white/20 p-8 md:border-b-0 md:border-r md:border-white/20">
-                <p className="font-headline text-8xl font-black leading-none text-[#CC0000]">01</p>
-                <h3 className="font-headline mt-4 text-2xl font-bold text-white">
-                  Complete KYC
-                </h3>
-                <p className="mt-2 font-body text-sm text-white/70">
-                  Upload your ID and a selfie. Your wallet is created during the flow. One-time payment of 1 USDC to issue your credential.
-                </p>
-              </div>
-              <div className="animate-fade-in-up-delay-150 border-b border-white/20 p-8 md:border-b-0 md:border-r md:border-white/20">
-                <p className="font-headline text-8xl font-black leading-none text-[#CC0000]">02</p>
-                <h3 className="font-headline mt-4 text-2xl font-bold text-white">
-                  Receive credential
-                </h3>
-                <p className="mt-2 font-body text-sm text-white/70">
-                  Your ZeroPass credential is issued on Starknet and linked to your Chipi wallet. No personal data is stored on-chain.
-                </p>
-              </div>
-              <div className="animate-fade-in-up-delay-3 p-8">
-                <p className="font-headline text-8xl font-black leading-none text-[#CC0000]">03</p>
-                <h3 className="font-headline mt-4 text-2xl font-bold text-white">
-                  Access anywhere
-                </h3>
-                <p className="mt-2 font-body text-sm text-white/70">
-                  Show your QR code or share your wallet address. Businesses verify your credential instantly. No forms, no repeated KYC.
-                </p>
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-16 md:py-20">
+            <div className="mx-auto w-full max-w-4xl text-center">
+              <p className="animate-hero-fade-up font-mono-data text-xs font-medium uppercase tracking-[0.2em] text-white/60">
+                STARKNET POWERED IDENTITY
+              </p>
+              <h1 className="animate-hero-fade-up mt-3 font-headline text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+                One-time KYC. Zero data leaks.
+              </h1>
+              <p className="animate-hero-fade-up-delay-100 mt-6 max-w-2xl mx-auto font-sans text-base leading-relaxed text-white/80 md:text-lg">
+                Issue a privacy-preserving credential on Starknet and verify anywhere without sharing personal data.
+              </p>
+              <div className="animate-hero-fade-up-delay-200 mt-10 flex flex-col items-center gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
+                <Button
+                  asChild
+                  size="lg"
+                  className="hero-cta-glow w-full rounded-md bg-[#CC0000] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-[#CC0000]/95 sm:w-auto"
+                  variant="default"
+                >
+                  <Link href="/kyc" prefetch={false}>
+                    Get verified
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full rounded-md border border-white/30 bg-transparent font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white sm:w-auto"
+                >
+                  <Link href="/business">Verify a credential</Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full rounded-md border border-white/30 bg-transparent font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white sm:w-auto"
+                >
+                  <Link href="/dashboard" className="flex items-center gap-2">
+                    <LayoutDashboard className="h-5 w-5" />
+                    Go to dashboard
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Stats bar */}
-        <section className="border-b-4 border-[#111111] bg-[#111111] py-6">
-          <p className="font-mono-data text-center text-sm font-medium uppercase tracking-widest text-[#4ade80] md:text-base">
-            10,000+ VERIFICATIONS | STARKNET POWERED | GASLESS TRANSACTIONS
-          </p>
+        <HowItWorks />
+
+        {/* Bottom ticker strip: dark, thin border, subtle scroll */}
+        <section className="overflow-hidden border-y border-white/10 bg-[#0a0a0a] py-3" aria-label="Platform stats">
+          <div className="animate-ticker-subtle flex w-max items-center gap-12 whitespace-nowrap px-4">
+            <span className="font-mono-data text-xs font-medium tracking-[0.15em] text-white/70">
+              10,000+ VERIFICATIONS | STARKNET POWERED | GASLESS TRANSACTIONS
+            </span>
+            <span className="font-mono-data text-xs font-medium tracking-[0.15em] text-white/70">
+              10,000+ VERIFICATIONS | STARKNET POWERED | GASLESS TRANSACTIONS
+            </span>
+          </div>
         </section>
 
         {/* Footer */}

@@ -41,7 +41,7 @@ export function BusinessVerificationForm() {
       try {
         await scannerInstanceRef.current.stop();
       } catch {
-        // stop() throws if scanner is not running — safe to ignore
+        
       }
       scannerInstanceRef.current = null;
     }
@@ -73,13 +73,13 @@ export function BusinessVerificationForm() {
             // use raw as address
           }
           setWalletAddress(address);
-          toast.success("QR scanned — verifying...");
+          toast.success("QR scanned: verifying...");
           await verifyAddress(address);
         },
         () => {}
       );
     } catch {
-      toast.error("Could not access camera. Please allow camera permissions.");
+      toast.error("Could not access camera.");
       setScannerOpen(false);
     }
   }, [stopScanner]);
@@ -107,7 +107,7 @@ export function BusinessVerificationForm() {
       });
       const data = (await res.json().catch(() => ({}))) as ProofVerifyResponse & { error?: string };
       setProofResult(data);
-      if (data.valid) toast.success("Proof valid — credential verified");
+      if (data.valid) toast.success("Proof valid: credential verified");
       else toast.error(data.reason ?? "Proof invalid");
     } catch {
       toast.error("Verification request failed");

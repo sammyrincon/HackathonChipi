@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { CredentialStatus } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { kycSubmitSchema } from "@/lib/validators";
 import { verifyPayment } from "@/lib/payments";
 import { normalizeWallet } from "@/lib/utils";
 import { randomHex } from "@/lib/crypto-utils";
+import { isBackendDemo } from "@/lib/demo";
 
 export type KycCredentialResponse = {
   ok: boolean;
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     const parsed = kycSubmitSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Validation failed", code: "VALIDATION_FAILED", details: parsed.error.flatten() },
+        { error: "Validation failed", code: "VALIDATION_FAILED", details: z.flattenError(parsed.error) },
         { status: 400 }
       );
     }
@@ -71,10 +73,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const allowDemoKyc = process.env.ALLOW_DEMO_KYC === "true";
-    if (bodyStatus !== undefined && bodyStatus !== null && bodyStatus !== "" && !allowDemoKyc) {
+    if (bodyStatus !== undefined && bodyStatus !== null && bodyStatus !== "" && !isBackendDemo) {
       return NextResponse.json(
-        { error: "Demo KYC disabled: set ALLOW_DEMO_KYC=true on the server", code: "DEMO_DISABLED" },
+        { error: "Demo KYC disabled: set DEMO=true on the server", code: "DEMO_DISABLED" },
         { status: 403 }
       );
     }
@@ -105,8 +106,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Preserve existing credentialId on update so CredentialProof rows are updated in-place
-    // instead of accumulating new rows on each re-submission.
     const credentialId =
       existing?.credentialId ?? `zp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
@@ -114,7 +113,7 @@ export async function POST(request: NextRequest) {
     let issuedAt: Date | null = null;
     let finalExpiresAt: Date | null = null;
 
-    if (allowDemoKyc && (bodyStatus === "VERIFIED" || bodyStatus === "PENDING" || bodyStatus === "REVOKED" || bodyStatus === "EXPIRED")) {
+    if (isBackendDemo && (bodyStatus === "VERIFIED" || bodyStatus === "PENDING" || bodyStatus === "REVOKED" || bodyStatus === "EXPIRED")) {
       status = bodyStatus;
       if (status === "VERIFIED") {
         issuedAt = now;
@@ -133,9 +132,9 @@ export async function POST(request: NextRequest) {
     const createExpiresAt =
       status === "VERIFIED" && finalExpiresAt ? finalExpiresAt : expiresAt;
     const createIssuedAt =
-      status === "VERIFIED" && issuedAt ? issuedAt : now;
+      status === "VERIFIED" && issuedAt ? issuedAt : null;
 
-    const isDemo = allowDemoKyc && (bodyStatus === "VERIFIED" || bodyStatus === "PENDING");
+    const isDemo = isBackendDemo && (bodyStatus === "VERIFIED" || bodyStatus === "PENDING");
     if (process.env.NODE_ENV === "development") {
       console.log("KYC REQUEST", {
         userId,
@@ -152,7 +151,7 @@ export async function POST(request: NextRequest) {
         status: statusEnum,
         credentialId,
         transactionHash: txHash ?? null,
-        issuedAt: createIssuedAt,
+        ...(createIssuedAt ? { issuedAt: createIssuedAt } : {}),
         expiresAt: createExpiresAt,
       },
       update: {
@@ -166,10 +165,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // When VERIFIED and DEMO_PROOFS enabled, upsert stub proof for QR verification.
+    // When VERIFIED and demo mode enabled, upsert stub proof for QR verification.
     if (
       credential.status === CredentialStatus.VERIFIED &&
-      process.env.DEMO_PROOFS === "true"
+      isBackendDemo
     ) {
       const walletLower = normalizeWallet(credential.walletAddress);
       const commitment = "0x" + randomHex(32);
@@ -222,6 +221,10 @@ export async function POST(request: NextRequest) {
       walletAddress: credential.walletAddress,
       status: credential.status as KycCredentialResponse["status"],
       expiresAt: credential.expiresAt?.toISOString() ?? null,
+      issuedAt:
+        credential.status === CredentialStatus.VERIFIED
+          ? (credential.issuedAt?.toISOString() ?? null)
+          : null,
       transactionHash: credential.transactionHash,
       message:
         credential.status === CredentialStatus.VERIFIED

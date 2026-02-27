@@ -30,14 +30,14 @@ export function OnboardingWalletStep({
 
   if (hasExistingWallet) {
     return (
-      <div className="space-y-4">
+      <div className="flex flex-col items-center space-y-4 text-center">
         <p className="font-body text-sm text-[#111111]/80">
           You already have a wallet. Mark onboarding complete and go to the dashboard.
         </p>
         <Button
           onClick={markCompleteAndGoToDashboard}
           disabled={loading}
-          className="rounded-none border-2 border-[#111111] bg-[#111111] text-white hover:bg-[#111111]/90"
+          className="rounded-md border-2 border-[#111111] bg-[#111111] text-white hover:bg-[#111111]/90"
         >
           {loading ? "Redirecting…" : "Go to dashboard"}
         </Button>
@@ -46,8 +46,11 @@ export function OnboardingWalletStep({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col items-center space-y-2 text-center">
       <CreateWalletDialog onSuccess={handleWalletCreated} />
+      <p className="font-body text-xs text-[#111111]/60">
+        Takes 30 seconds.
+      </p>
     </div>
   );
 }

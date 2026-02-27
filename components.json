@@ -4,7 +4,6 @@
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "config": "",
     "css": "app/globals.css",
     "baseColor": "zinc",
     "cssVariables": true,
@@ -20,6 +19,8 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@chipi": "https://mcp.chipipay.com/r/{name}.json"
+    "@chipi": "https://mcp.chipipay.com/r/{name}.json",
+    "@acme": "https://acme.com/r/{name}.json"
   }
+ 
 }

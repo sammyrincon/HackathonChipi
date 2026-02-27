@@ -3,11 +3,13 @@ import { CredentialStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { normalizeWallet } from "@/lib/utils";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { isBackendDemo } from "@/lib/demo";
 
 /**
  * GET /api/proof/status?wallet=0x...
- * Returns proof data for QR payload when DEMO_PROOFS is enabled and credential is VERIFIED.
+ * Returns proof data for QR payload when demo mode is enabled and credential is VERIFIED.
  */
+
 export async function GET(request: NextRequest) {
   const limit = checkRateLimit(request);
   if (!limit.ok) {
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    if (process.env.DEMO_PROOFS !== "true") {
+    if (!isBackendDemo) {
       return NextResponse.json(
         { error: "Proofs are disabled" },
         { status: 403 }

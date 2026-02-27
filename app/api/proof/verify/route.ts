@@ -3,6 +3,7 @@ import { CredentialStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { normalizeWallet } from "@/lib/utils";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { isBackendDemo } from "@/lib/demo";
 
 /**
  * Parse ZeroPass payload string: zp://verify?wallet=0x...&cred=<credentialId>&commitment=0x...
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    if (process.env.DEMO_PROOFS !== "true") {
+    if (!isBackendDemo) {
       return NextResponse.json({
         valid: false,
         reason: "PROOFS_DISABLED",
@@ -89,11 +90,11 @@ export async function POST(request: NextRequest) {
       if (!anyCred)
         return NextResponse.json({ valid: false, reason: "NO_CREDENTIAL" });
       if (anyCred.status !== CredentialStatus.VERIFIED)
-        return NextResponse.json({ valid: false, reason: "NO_CREDENTIAL" });
+        return NextResponse.json({ valid: false, reason: "NOT_VERIFIED" });
       const now = new Date();
       if (anyCred.expiresAt && anyCred.expiresAt <= now)
         return NextResponse.json({ valid: false, reason: "EXPIRED" });
-      return NextResponse.json({ valid: false, reason: "NO_CREDENTIAL" });
+      return NextResponse.json({ valid: false, reason: "CRED_MISMATCH" });
     }
 
     const now = new Date();
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
         ? publicSignals.commitment
         : "";
     if (commitmentStored !== parsed.commitment) {
-      return NextResponse.json({ valid: false, reason: "MISMATCH" });
+      return NextResponse.json({ valid: false, reason: "CRED_MISMATCH" });
     }
 
     const issuer =

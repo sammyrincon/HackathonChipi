@@ -20,6 +20,7 @@ import { ShieldCheck, Loader2, CreditCard, Upload, CheckCircle2, UploadCloud, Ch
 import Link from "next/link";
 import type { KycCredentialResponse } from "@/app/api/kyc/route";
 import { formatWalletAddress } from "@/lib/utils";
+import { isFrontendDemo } from "@/lib/demo";
 import { SessionKeySetup } from "./session-key-setup";
 
 type Stage = "upload" | "payment" | "issued";
@@ -103,12 +104,9 @@ export function KycForm() {
     sessionStorage.setItem(KYC_STAGE_KEY, stage);
   }, [stage]);
 
-  const demoMode =
-    process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-  const demoPayments =
-    process.env.NEXT_PUBLIC_DEMO_PAYMENTS === "true";
-  const allowFakePayments =
-    process.env.NEXT_PUBLIC_ALLOW_FAKE_PAYMENTS === "true";
+  const demoMode = isFrontendDemo;
+  const demoPayments = isFrontendDemo;
+  const allowFakePayments = isFrontendDemo;
 
   const chipiWalletAddress =
     walletResponse?.normalizedPublicKey ?? walletResponse?.publicKey ?? "";
@@ -198,7 +196,7 @@ export function KycForm() {
       if (!res.ok) {
         const msg = data.error ?? "Credential issuance failed";
         if ((res.status === 403 || res.status === 400) && String(msg).toLowerCase().includes("allow_demo_kyc")) {
-          toast.error("Server has demo disabled. Set ALLOW_DEMO_KYC=true in server env.", { id: "kyc-demo-pay" });
+          toast.error("Server has demo disabled. Set DEMO=true in server env.", { id: "kyc-demo-pay" });
         } else {
           toast.error(msg, { id: "kyc-demo-pay" });
         }
@@ -573,7 +571,7 @@ export function KycForm() {
                   No Chipi wallet found. Create one to continue with payment.
                 </p>
                 <p className="font-body text-xs text-[#111111]/60">
-                  (Demo payments are off. Set NEXT_PUBLIC_DEMO_PAYMENTS=true to use demo flow.)
+                  (Demo payments are off. Set NEXT_PUBLIC_DEMO=true to use demo flow.)
                 </p>
                 <CreateWalletDialog
                   onSuccess={() => {

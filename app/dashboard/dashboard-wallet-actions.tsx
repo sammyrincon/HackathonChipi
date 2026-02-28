@@ -5,7 +5,7 @@ import { ExternalLink } from "lucide-react";
 import SendUsdcDialog from "@/components/send-usdc-dialog";
 import { getVoyagerContractUrl } from "@/lib/utils";
 import { isValidStarknetAddress } from "@/lib/isValidStarknetAddress";
-import type { WalletData } from "@chipi-stack/types";
+import type { WalletData, WalletType } from "@chipi-stack/types";
 
 export function DashboardWalletActions({
   normalizedPublicKey,
@@ -16,13 +16,13 @@ export function DashboardWalletActions({
   normalizedPublicKey: string;
   publicKey: string;
   encryptedPrivateKey: string;
-  walletType: string;
+  walletType?: WalletType;
 }) {
   const walletData: WalletData = {
     publicKey,
     encryptedPrivateKey,
     normalizedPublicKey,
-    walletType,
+    ...(walletType != null && { walletType }),
   };
 
   const address = normalizedPublicKey.trim();

@@ -3,14 +3,41 @@
 @tailwind utilities;
 
 @theme {
-  --color-newsprint: #F9F9F7;
-  --color-newsprint-fg: #111111;
-  --color-newsprint-accent: #CC0000;
+  /* Core */
+  --color-bg: #0B0B0D;
+  --color-fg: #F9F9F7;
+
+  /* Brand */
+  --color-accent: #CC0000;
+  --color-accent-hover: #E00000;
+  --color-accent-active: #A80000;
+  --color-accent-soft: rgba(204, 0, 0, 0.12);
+  --color-accent-fg: #F9F9F7;
+
+  /* Surfaces */
+  --color-surface: rgba(249, 249, 247, 0.04);
+  --color-border: rgba(249, 249, 247, 0.18);
+  --color-muted: rgba(249, 249, 247, 0.08);
+  --color-muted-fg: rgba(249, 249, 247, 0.70);
+
+  /* Focus */
+  --color-ring: rgba(204, 0, 0, 0.55);
+
+  /* Typography */
   --font-headline: var(--font-headline), ui-serif, serif;
   --font-body: var(--font-body), ui-serif, serif;
   --font-ui: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  /* Radius */
   --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Shadows */
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.45);
+  --shadow-accent-glow: 0 0 0 1px rgba(204,0,0,0.25), 0 0 24px rgba(204,0,0,0.25);
   --shadow-newsprint-hover: 4px 4px 0px 0px #111111;
 }
 
@@ -49,7 +76,6 @@
   }
 }
 
-/* Token-based utilities for background and text */
 .bg-newsprint {
   background-color: var(--newsprint-bg, #F9F9F7);
 }
@@ -81,24 +107,23 @@
   transform: translate(-2px, -2px);
 }
 
-/* Defensive zero radius */
+
 .sharp-corners {
   border-radius: 0 !important;
 }
 
-/* Divider: 4px border */
+
 .newsprint-divider {
   border-width: 4px;
   border-color: #111111;
 }
 
-/* Uppercase tracking-widest labels */
+
 .newsprint-label {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
-/* Newsprint typography */
 .font-headline {
   font-family: var(--font-headline), ui-serif, serif;
 }
@@ -109,7 +134,6 @@
   font-family: var(--font-mono), ui-monospace, monospace;
 }
 
-/* Typography scale (spec) */
 .text-newsprint-h1 {
   font-family: var(--font-headline), ui-serif, serif;
   font-size: clamp(2.5rem, 5vw, 6rem);
@@ -145,7 +169,6 @@
   letter-spacing: 0.1em;
 }
 
-/* Line grid overlay (section texture) — subtle so content is readable */
 .newsprint-texture {
   position: relative;
 }
@@ -161,7 +184,6 @@
   opacity: 0.4;
 }
 
-/* Hero: staggered entrance (headline, subtext, CTA) */
 @keyframes hero-fade-up {
   from {
     opacity: 0;
@@ -184,12 +206,10 @@
   animation: hero-fade-up 0.6s ease-out 0.2s forwards;
 }
 
-/* CTA: subtle glow on hover */
 .hero-cta-glow:hover {
   box-shadow: 0 0 24px rgba(204, 0, 0, 0.35);
 }
 
-/* Bottom ticker: very subtle scroll */
 @keyframes ticker-subtle {
   0% {
     transform: translateX(0);
@@ -202,7 +222,6 @@
   animation: ticker-subtle 40s linear infinite;
 }
 
-/* Ticker / marquee: continuous scroll */
 @keyframes ticker-scroll {
   0% {
     transform: translateX(0);
@@ -215,7 +234,6 @@
   animation: ticker-scroll 25s linear infinite;
 }
 
-/* Stock-style ticker: seamless horizontal scroll */
 .ticker-strip {
   mask-image: linear-gradient(
     to right,
@@ -245,7 +263,6 @@
   padding-right: 4rem;
 }
 
-/* Blinking cursor (terminal) */
 @keyframes cursor-blink {
   0%,
   50% {
@@ -260,7 +277,6 @@
   animation: cursor-blink 1s step-end infinite;
 }
 
-/* VERIFIED badge subtle pulse */
 @keyframes badge-pulse {
   0%,
   100% {
@@ -276,7 +292,6 @@
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
-/* Credential card: border draws itself (SVG stroke) */
 @keyframes stroke-draw {
   from {
     stroke-dashoffset: 1;
@@ -289,7 +304,6 @@
   animation: stroke-draw 1.2s ease-out forwards;
 }
 
-/* Shield icon: subtle float */
 @keyframes float {
   0%,
   100% {
@@ -303,7 +317,6 @@
   animation: float 3s ease-in-out infinite;
 }
 
-/* Cards: fade-in-up on load with optional stagger */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -317,7 +330,6 @@
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out forwards;
 }
-/* Card hover: lift (bank-style) */
 .how-it-works-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -326,7 +338,6 @@
   box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
 }
 
-/* How it works cards: staggered fade-up on load */
 .how-it-works-card-0 {
   opacity: 0;
   animation: fade-in-up 0.6s ease-out 0ms forwards;
@@ -356,7 +367,6 @@
   opacity: 0;
 }
 
-/* Checkmark when file selected (scale + opacity) */
 @keyframes checkmark-in {
   from {
     opacity: 0;

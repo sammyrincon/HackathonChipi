@@ -71,8 +71,8 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="border-b-2 border-[#111111] bg-newsprint px-4 py-3 md:px-6">
-        <p className="text-newsprint-meta text-sm text-[#111111]/80">
+      <div className="border-b-2 border-[#000000] bg-newsprint px-4 py-3 md:px-6">
+        <p className="text-newsprint-meta text-sm text-[#000000]/80">
           Vol. 1 | Est. 2026 | Starknet Edition
         </p>
       </div>

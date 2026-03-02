@@ -43,8 +43,8 @@ export function DashboardWalletHitCounter({
 
   if (!hasWallet) {
     return (
-      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-10 text-center">
-        <p className="font-mono-data text-sm uppercase tracking-widest text-white/70">
+      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-white bg-black p-10 text-center !text-white" style={{ color: "white" }}>
+        <p className="font-mono-data text-sm uppercase tracking-widest !text-white">
           Wallet balance
         </p>
         <p className="mt-3 font-mono-data text-2xl font-bold tabular-nums text-[#4ade80]/80">
@@ -59,8 +59,8 @@ export function DashboardWalletHitCounter({
 
   if (!hasValidAddress) {
     return (
-      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-10 text-center">
-        <p className="font-mono-data text-sm uppercase tracking-widest text-white/70">
+      <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-10 text-center !text-white" style={{ color: "white" }}>
+        <p className="font-mono-data text-sm uppercase tracking-widest !text-white">
           Wallet balance
         </p>
         <p className="mt-3 font-mono-data text-2xl font-bold tabular-nums text-[#4ade80]/80">
@@ -74,8 +74,8 @@ export function DashboardWalletHitCounter({
   }
 
   return (
-    <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-10 text-center">
-      <p className="font-mono-data text-sm uppercase tracking-widest text-white/70">
+    <div className="flex h-full w-full max-w-sm flex-col items-center justify-center border border-[#111111] bg-[#111111] p-10 text-center !text-white" style={{ color: "white" }}>
+      <p className="font-mono-data text-sm uppercase tracking-widest !text-white">
         Wallet balance
       </p>
       <div className="mt-3">
@@ -85,14 +85,14 @@ export function DashboardWalletHitCounter({
         />
       </div>
       <div className="mt-6 border-t border-white/20 pt-5">
-        <p className="font-mono-data text-sm uppercase tracking-widest text-white/70">
+        <p className="font-mono-data text-sm uppercase tracking-widest !text-white">
           Wallet address
         </p>
         <div className="mt-2 flex flex-col gap-2">
           <Button
             type="button"
             variant="ghost"
-            className="flex w-full items-center justify-between gap-2 rounded-none border-0 font-mono-data text-sm text-[#4ade80] hover:bg-white/10 hover:text-[#4ade80]"
+            className="flex w-full items-center justify-between gap-2 rounded-none border-0 font-mono-data text-sm !text-white hover:bg-white/10 hover:!text-white"
             onClick={copyFullWallet}
           >
             <span className="truncate">{shortWallet}</span>
@@ -102,7 +102,7 @@ export function DashboardWalletHitCounter({
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-none border-0 font-mono-data text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-none border-0 font-mono-data text-sm !text-white hover:bg-white/10 hover:!text-white"
               asChild
             >
               <Link
@@ -118,7 +118,7 @@ export function DashboardWalletHitCounter({
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-none border-0 font-mono-data text-sm text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-none border-0 font-mono-data text-sm !text-white hover:bg-white/10 hover:!text-white"
               asChild
             >
               <Link
@@ -137,7 +137,7 @@ export function DashboardWalletHitCounter({
               Tu wallet aún no está desplegada en StarkNet. No aparecerá en Voyager ni Starkscan hasta que hagas tu primera transacción (ej. enviar USDC desde la app).
             </p>
           ) : (
-            <p className="mt-3 font-body text-xs text-white/60">
+            <p className="mt-3 font-body text-xs !text-white">
               Enlaces al explorador (mainnet). Si no aparece, prueba ambos.
             </p>
           )}

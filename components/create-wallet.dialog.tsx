@@ -48,7 +48,6 @@ export function CreateWalletDialog({
   hasExistingWallet = false,
 }: {
   onSuccess?: () => void;
-  /** When true, we NEVER call createWallet — safety guard to avoid overwriting funded wallets. */
   hasExistingWallet?: boolean;
 }) {
   const { getToken, userId: clerkUserId } = useAuth();
@@ -83,7 +82,6 @@ export function CreateWalletDialog({
         },
         bearerToken: token,
       });
-      // Call onSuccess first (e.g. persist stage + reload) so it runs before dialog closes
       onSuccess?.();
       form.reset();
       setOpen(false);
@@ -96,7 +94,9 @@ export function CreateWalletDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Create Wallet</Button>
+        <Button variant="outline" className="hover:!text-[#F9F9F7]">
+          Create Wallet
+        </Button>
       </DialogTrigger>
 
       <DialogContent>

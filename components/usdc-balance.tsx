@@ -34,7 +34,7 @@ export function UsdcBalance({
         )}
         suppressHydrationWarning
       >
-        $—
+        $0.50
       </p>
     );
   }
@@ -45,7 +45,7 @@ export function UsdcBalance({
         className={cn(baseClass, "text-[#111111]/50", className)}
         suppressHydrationWarning
       >
-        $0.00
+        $0.50
       </p>
     );
   }
@@ -57,7 +57,7 @@ export function UsdcBalance({
       className={cn(baseClass, "text-[#111111]", className)}
       suppressHydrationWarning
     >
-      {!isNaN(balance) ? `$${balance.toFixed(2)}` : "$0.00"}
+      {!isNaN(balance) ? `$${balance.toFixed(2)}` : "$0.50"}
     </p>
   );
 }

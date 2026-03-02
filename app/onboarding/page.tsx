@@ -67,7 +67,7 @@ export default async function OnboardingPage() {
               Create your wallet
             </CardTitle>
             <CardDescription className="font-body text-[#111111]/80">
-              Create a Chipi wallet to hold USDC and link your ZeroPass credential. We never create a wallet automatically — only when you confirm here.
+              Create a Chipi wallet to hold USDC and link your ZeroPass credential. We never create a wallet automatically, only when you confirm here.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-4">

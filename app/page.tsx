@@ -81,7 +81,7 @@ export default function Home() {
                   <Button
                     asChild
                     size="lg"
-                    className="hero-cta-glow w-full rounded-md bg-[#CC0000] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-[#CC0000]/95 sm:w-auto"
+                    className="hero-cta-glow w-full rounded-md border border-[#CC0000] bg-[#000000] font-semibold text-[#CC0000] transition-all duration-300 hover:scale-[1.02] hover:bg-[#CC0000]/95 hover:text-white sm:w-auto"
                     variant="default"
                   >
                     <Link href="/kyc" prefetch={false}>
@@ -92,7 +92,7 @@ export default function Home() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="w-full rounded-md border border-white/30 bg-transparent font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white sm:w-auto"
+                    className="w-full rounded-md border border-[#CC0000] bg-transparent font-medium text-[#CC0000] transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white hover:border-white/30 sm:w-auto"
                   >
                     <Link href="/business">Verify a credential</Link>
                   </Button>
@@ -100,7 +100,7 @@ export default function Home() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="w-full rounded-md border border-white/30 bg-transparent font-medium text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white sm:w-auto"
+                    className="w-full rounded-md border border-[#CC0000] bg-transparent font-medium text-[#CC0000] transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 hover:text-white hover:border-white/30 sm:w-auto [&_svg]:text-[#CC0000]"
                   >
                     <Link href="/dashboard" className="flex items-center gap-2">
                       <LayoutDashboard className="h-5 w-5" />

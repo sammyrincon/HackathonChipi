@@ -1,18 +1,108 @@
-# ZeroPass — Portable Compliance Credentials
 
-ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet. Users complete a simulated KYC once and receive a verifiable credential linked to their wallet. Verifiers can check credential status at `/verify` (no sign-in). No RPC or real funds required in demo mode.
+
+**ZeroPass: Portable Compliance Credentials**
+
+ZeroPass is a Starknet-based prototype for portable compliance credentials. Instead of repeating KYC across platforms, 
+users verify once and receive a reusable credential linked to their wallet. 
+Businesses can instantly verify credential status without accessing personal data.
+ 
+**The Problem**
+
+Every time someone interacts with:
+
+   - Financial platforms
+
+   - On-chain services
+
+   - Regulated marketplaces
+
+They must choose between:
+
+  - Privacy
+
+  - Compliance
+
+Most systems expose too much personal data or duplicate KYC processes.
+
+
+
+**The Solution**
+
+ZeroPass introduces:
+
+   - A reusable compliance credential
+
+   - Wallet-linked identity verification
+
+   - Instant status checks for businesses
+
+   - No personal data shared during verification
+
+Verification only returns:
+
+VERIFIED / NOT VERIFIED
++ Expiry date
+
+Nothing else.
 
 **Stack:** Next.js (App Router), TypeScript, Prisma, Clerk, Chipi Provider.
 
-## What is ZeroPass?
-
+** What is ZeroPass?
+**
 - **User flow:** Sign in (Clerk) → complete simulated KYC at `/kyc` → credential is issued (VERIFIED) with 30-day expiry, linked to wallet.
 - **Verifier flow:** Go to `/verify` → enter wallet address or paste/scan QR payload `{"walletAddress":"0x..."}` → get VERIFIED / NOT VERIFIED.
 - **Dashboard:** View credential status, expiry, wallet, QR code; revoke credential.
 - **Demo mode:** Set `NEXT_PUBLIC_DEMO_MODE=true` and `DEMO_MODE=true` to skip real payment; backend accepts `0xDEMO_*` tx hash and issues VERIFIED credential without RPC or funds.
 
-## Local setup
 
+   ```
+
+
+## Demo in 60 seconds (checklist)
+
+   1. Sign in
+
+   2. Complete simulated KYC
+
+   3. Receive credential (30-day validity)
+
+   4. Open /verify
+
+   5. Paste wallet or scan QR
+
+   6. See instant verification
+
+Demo mode requires no real transaction.
+
+
+**Why It Matters**
+
+   - Reduces repeated KYC friction
+
+   - Preserves user privacy
+
+   - Enables portable compliance
+
+   - Aligns with zero-knowledge identity infrastructure
+
+Vision
+
+ZeroPass evolves into a privacy-preserving compliance layer for Web3 and regulated digital platforms.
+
+A future where identity verification is:
+
+   - Reusable
+
+   - Private
+
+   - Instant
+
+   - Composable
+
+
+
+**Local setup
+**
 1. **Clone and install**
 
    ```bash
@@ -24,16 +114,14 @@ ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet
 2. **Environment**
 
    Copy `.env.example` to `.env.local` and set:
-
-   | Variable | Description |
-   |----------|-------------|
-   | `DATABASE_URL` | Postgres connection string (e.g. Supabase) |
-   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
-   | `CLERK_SECRET_KEY` | Clerk secret key |
-   | `NEXT_PUBLIC_DEMO_MODE` | `true` for hackathon demo (skip real transfer) |
-   | `DEMO_MODE` | `true` so backend accepts `0xDEMO_*` tx hash |
-   | `NEXT_PUBLIC_CHIPI_API_KEY` | Chipi API key (optional in demo mode) |
-   | `NEXT_PUBLIC_MERCHANT_WALLET` | Starknet address for payments (optional in demo mode) |
+   
+    `DATABASE_URL` | Postgres connection string (e.g. Supabase) |
+    `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+    `CLERK_SECRET_KEY` | Clerk secret key |
+ `NEXT_PUBLIC_DEMO_MODE` | `true` for hackathon demo (skip real transfer) |
+    `DEMO_MODE` | `true` so backend accepts `0xDEMO_*` tx hash |
+    `NEXT_PUBLIC_CHIPI_API_KEY` | Chipi API key (optional in demo mode) |
+    `NEXT_PUBLIC_MERCHANT_WALLET` | Starknet address for payments (optional in demo mode) |
 
    **Voyager:** Wallet links use Voyager mainnet (voyager.online) only. The contract may not appear until the first on-chain transaction (counterfactual deployment).
 
@@ -48,44 +136,4 @@ ZeroPass is a hackathon demo for **portable compliance credentials** on Starknet
 
    ```bash
    npm run dev
-   ```
 
-   Open [http://localhost:3000](http://localhost:3000).
-
-## Demo in 60 seconds (checklist)
-
-- [ ] Set `NEXT_PUBLIC_DEMO_MODE=true` and `DEMO_MODE=true` in `.env.local`, restart dev server.
-- [ ] Open `/` → sign in with Clerk.
-- [ ] Go to **/kyc** → upload any ID + selfie (demo, not stored) → **Continue to payment**.
-- [ ] Click **Complete KYC (Demo)** (no real transfer) → see **Credential issued ✅**.
-- [ ] Go to **/dashboard** → see credential, expiry, wallet; expand **My ZeroPass QR** (payload `{ walletAddress }`); click **Revoke credential** to test revoke.
-- [ ] Open **/verify** in another tab (or incognito) → paste wallet address or paste QR payload `{"walletAddress":"0x..."}` → **Verify** → see **Verified** or **Not verified**.
-
-## API (Zod-validated)
-
-- `GET /api/healthz` (public) — health check; returns `{ status: "ok" }` for load balancers.
-- `POST /api/kyc` (auth) — body: `{ walletAddress, transactionHash?, kycData? }`. Upsert credential; if `verifyPayment` accepts tx (e.g. `0xDEMO_*` in demo mode), status = VERIFIED, 30-day expiry. Response: `{ ok, status, expiresAt, walletAddress, ... }`.
-- `GET /api/kyc/status` (auth) — credential for **current user** (by Clerk userId). Internal use; for query by wallet use `GET /api/credential/status` instead.
-- `GET /api/credential/status` (public, rate-limited) — query `?wallet=0x...`. Returns `{ exists, status, expiresAt, valid }`. Used by dashboard and verify flow.
-- `POST /api/kyc/revoke` (auth) — set credential status to REVOKED.
-- `POST /api/kyc/verify` (public, rate-limited) — body: `{ walletAddress }`. Response: `{ verified, reason?, expiresAt? }`.
-- `POST /api/proof/verify` (public, rate-limited) — body: `{ payload }` (ZeroPass `zp://verify?...`). Requires `DEMO_PROOFS=true`.
-- `GET /api/proof/status` (public, rate-limited) — query `?wallet=0x...`. Returns QR payload when `DEMO_PROOFS=true`.
-
-## Scripts
-
-- `npm run dev` — development server
-- `npm run build` — production build
-- `npm run start` — production server
-- `npm run lint` — ESLint
-- `npm run typecheck` — TypeScript check
-
-## Deploy
-
-1. **Environment (production checklist)**
-   - Use **production** Clerk keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) and set production sign-in/sign-up URLs (or domain) if needed.
-   - Use **production** Chipi keys: `NEXT_PUBLIC_CHIPI_API_KEY` and `CHIPI_SECRET_KEY` (both required for wallet/onboarding).
-   - Set `DATABASE_URL` (e.g. Supabase production).
-   - Leave `DEMO_MODE` / `NEXT_PUBLIC_DEMO_MODE` unset (or `false`) if you want real payments.
-2. **Database:** Run `npx prisma migrate deploy` against the production DB before or as part of first deploy.
-3. **Build and start:** `npm run build && npm run start` (build runs `prisma generate` automatically).
